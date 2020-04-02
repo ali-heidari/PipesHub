@@ -1,7 +1,6 @@
 /**
  * Import modules
  */
-const http = require('http')
 const yaml = require('yaml')
 const fs = require('fs')
 const httpStatus = require('http-status-codes');
@@ -26,7 +25,7 @@ app.get('*', function (req, res) {
     const controller = new controllers[urlSegments[1]]();
     const action = controller.request(urlSegments[2]);
 
-    res.writeHead(200, {
+    res.writeHead(httpStatus.OK, {
         'Content-Type': 'text/html'
     });
     var readStream = fs.createReadStream(__dirname + '/views/' + urlSegments[1] + '/' + action.viewName + '.html', 'utf8');

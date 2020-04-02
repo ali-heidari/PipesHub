@@ -1,0 +1,33 @@
+{
+  "name": "pipeshub",
+  "version": "1.0.0",
+  "description": "NodeJS service to make other services communicate through it.",
+  "main": "main.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-status-codes": "^1.4.0",
+    "jose": "^1.25.0",
+    "yaml": "^1.8.3"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ali-heidari/PipesHub.git"
+  },
+  "keywords": [
+    "nodejs",
+    "microservice",
+    "mvc",
+    "push",
+    "notification"
+  ],
+  "author": "Ali Heidari",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/ali-heidari/PipesHub/issues"
+  },
+  "homepage": "https://github.com/ali-heidari/PipesHub#readme"
+}
