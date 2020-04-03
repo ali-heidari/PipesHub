@@ -1,4 +1,5 @@
 const fs = require('fs');
+const showdown = require('showdown');
 /**
  * The return object of controller
  */
@@ -11,8 +12,8 @@ exports.setEngine = function (app) {
             const md = content.toString()
                 .replace('?title?', options.title)
                 .replace('?message?', options.message);
-            const showdown = require('showdown');
-            let html = showdown.makeHtml(md);
+            const converter=new showdown.Converter();
+            let html = converter.makeHtml(md);
             return callback(null, html);
         });
     });
