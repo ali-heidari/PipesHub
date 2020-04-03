@@ -4,9 +4,11 @@
   "description": "NodeJS service to make other services communicate through it.",
   "main": "main.js",
   "dependencies": {
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "http-status-codes": "^1.4.0",
     "jose": "^1.25.0",
+    "showdown": "^1.9.1",
     "yaml": "^1.8.3"
   },
   "devDependencies": {},
