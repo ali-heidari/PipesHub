@@ -35,11 +35,11 @@ const sign = (iss, aud) =>
  */
 const verify = function (req, res, next) {
     if (exports.exceptions.indexOf(req.url) < 0) {
-        let verified = JWT.verify(
+        const jwt = req.headers.authorization.substr(7);
+        const verified = JWT.verify(
             jwt,
             JWK.asKey(publicKey.toPEM())
         );
-        log.l(verified);
     }
     next();
 };
