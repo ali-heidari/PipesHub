@@ -1,18 +1,60 @@
 /**
  * Import modules
  */
-const yaml = require('yaml')
+const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
 const httpStatus = require('http-status-codes');
 const jose = require('jose');
 const express = require('express');
 const cookieParser = require('cookie-parser');
-const log = require("./services/logger.js")
-const engine = require("./modules/md_engine")
-const indexRouter = require("./routes/index")
+const log = require("./services/logger");
+const auth = require("./services/authenticator");
+const engine = require("./modules/md_engine");
+const indexRouter = require("./routes/index");
+const usersRouter = require("./routes/users");
+const authRouter = require("./routes/auth/index");
 
 var app = express();
+
+const {
+    JWE, // JSON Web Encryption (JWE)
+    JWK, // JSON Web Key (JWK)
+    JWKS, // JSON Web Key Set (JWKS)
+    JWS, // JSON Web Signature (JWS)
+    JWT, // JSON Web Token (JWT)
+    errors // errors utilized by jose
+} = jose;
+
+let KeyStore = new JWKS.KeyStore();
+
+(async () => {
+    let privateKey = await JWK.generate("RSA", 2048, {
+        use: 'sig'
+    });
+    log.l(privateKey);
+    let jwk = privateKey.toJWK();
+    log.l(jwk);
+    let publicKey = JWK.asKey(jwk);
+    log.l(publicKey);
+    log.l(publicKey.toPEM());
+
+
+    let jwt = JWT.sign({
+        'aid': 'some-key'
+    }, privateKey, {
+        algorithm: 'PS512',
+        audience: 'urn:example:client_id',
+        issuer: 'https://op.example.com'
+    });
+    log.l(jwt);
+
+    let verified = JWT.verify(
+        jwt,
+        JWK.asKey(publicKey.toPEM())
+    );
+    log.l(verified);
+})();
 
 
 /**
@@ -33,8 +75,12 @@ app.use(express.urlencoded({
 }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(log.logger);
+app.use(auth.verify);
 
 app.use('/', indexRouter);
+app.use('/auth', authRouter);
+app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

@@ -10,11 +10,14 @@ class Logger {
         console.log(exception)
     }
 }
-const logger =new Logger();
+const logger = new Logger();
 /**
  * Exports
  */
-exports.logger = Logger;
+exports.logger = function (req, res, next) {
+    logger.l(`${req.method}\t${req.protocol}${req.httpVersion}\t${req.originalUrl}`)
+    next();
+};
 exports.l = (message) => {
     logger.l(message)
 };
