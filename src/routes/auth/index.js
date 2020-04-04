@@ -1,5 +1,6 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express');
+const router = express.Router();
+const auth = require("../../services/authenticator");
 
 /**
  *  Login API 
@@ -12,7 +13,7 @@ router.get('/', function (req, res, next) {
  */
 router.post('/', function (req, res, next) {
     console.log(req.body);
-    res.render('auth/index',{message:req.body.sec})
+    res.end(auth.sign('localhost', 'some-uid'));
 });
 
 module.exports = router;

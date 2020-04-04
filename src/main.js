@@ -5,7 +5,6 @@ const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
 const httpStatus = require('http-status-codes');
-const jose = require('jose');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const log = require("./services/logger");
@@ -17,45 +16,6 @@ const authRouter = require("./routes/auth/index");
 
 var app = express();
 
-const {
-    JWE, // JSON Web Encryption (JWE)
-    JWK, // JSON Web Key (JWK)
-    JWKS, // JSON Web Key Set (JWKS)
-    JWS, // JSON Web Signature (JWS)
-    JWT, // JSON Web Token (JWT)
-    errors // errors utilized by jose
-} = jose;
-
-let KeyStore = new JWKS.KeyStore();
-
-(async () => {
-    let privateKey = await JWK.generate("RSA", 2048, {
-        use: 'sig'
-    });
-    log.l(privateKey);
-    let jwk = privateKey.toJWK();
-    log.l(jwk);
-    let publicKey = JWK.asKey(jwk);
-    log.l(publicKey);
-    log.l(publicKey.toPEM());
-
-
-    let jwt = JWT.sign({
-        'aid': 'some-key'
-    }, privateKey, {
-        algorithm: 'PS512',
-        audience: 'urn:example:client_id',
-        issuer: 'https://op.example.com'
-    });
-    log.l(jwt);
-
-    let verified = JWT.verify(
-        jwt,
-        JWK.asKey(publicKey.toPEM())
-    );
-    log.l(verified);
-})();
-
 
 /**
  * Read configs
@@ -66,6 +26,8 @@ const configs = yaml.parse(configContent);
 /**
  * Set configs
  */
+auth.init();
+ 
 app.set('views', path.join(__dirname, 'views'));
 engine.setEngine(app);
 
