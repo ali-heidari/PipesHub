@@ -4,7 +4,6 @@
 const yaml = require('yaml');
 const fs = require('fs');
 const path = require('path');
-const httpStatus = require('http-status-codes');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const log = require("./services/logger");

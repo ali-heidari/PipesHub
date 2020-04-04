@@ -35,7 +35,6 @@ const sign = (iss, aud) =>
  */
 const verify = function (req, res, next) {
     if (exports.exceptions.indexOf(req.url) < 0) {
-        console.log('m');
         let verified = JWT.verify(
             jwt,
             JWK.asKey(publicKey.toPEM())
