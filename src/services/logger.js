@@ -7,7 +7,7 @@ class Logger {
         console.log(message)
     }
     e(exception) {
-        console.log(exception)
+        console.error(exception)
     }
 }
 const logger = new Logger();
