@@ -19,8 +19,13 @@ const configs = yaml.parse(configContent);
  * Set configs
  */
 auth.init();
- 
+
 route(app);
 
-app.listen(configs["port"]);
+const server = app.listen(configs["port"]);
 log.l("Server running on http://127.0.0.1:" + configs["port"])
+
+server.on('connection', function (socket) {
+    console.log("A new connection was made by a client.");
+    socket.setTimeout(5 * 60 * 1000);
+});

@@ -13,6 +13,13 @@ router.get('/', function (req, res, next) {
  */
 router.post('/', function (req, res, next) {
     console.log(req.body);
+    res.setHeader('Connection', 'keep-alive');
+
+
+    req.on('close', () => {
+        console.log('Connection to client closed.');
+        res.end();
+    });
     res.end(auth.sign('localhost', 'some-uid'));
 });
 

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const showdown = require('showdown');
 /**
- * The return object of controller
+ * Sets the view engine
  */
 exports.setEngine = function (app) {
     app.engine('md', function (filePath, options, callback) {
