@@ -13,31 +13,37 @@ var post_options = {
 };
 
 let post_req = http.request(post_options, function (res) {
-    console.log(res.headers)
+    let token = '';
     res.setEncoding('utf8');
     res.on('data', function (chunk) {
-        console.log('Response: ' + chunk);
+        token = chunk;
     });
     res.on('end', () => {
         console.log('End: ');
         const socket = socketIOClient('http://127.0.0.1:3000/', {
+            query: {
+                name: 'app'
+            },
             transportOptions: {
                 polling: {
                     extraHeaders: {
-                        'authorization': 'abc'
+                        'authorization': token
                     }
                 }
             }
         });
         socket.on('gateway', function (data) {
             console.log(data);
-
-
-            // Respond with a message including this clients' id sent from the server
-            socket.emit('gateway', {
-                data: 'foo!',
-                id: data.id
-            });
+        });
+        // Respond with a message including this clients' id sent from the server
+        socket.emit('gateway', {
+            receiverId: 'service',
+            operation: 'sum',
+            input: {
+                a: 6,
+                b: 9
+            },
+            awaiting: true
         });
     });
 });
