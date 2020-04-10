@@ -7,6 +7,7 @@ const express = require('express');
 const log = require("./services/logger");
 const auth = require("./services/authenticator");
 const route = require("./modules/route");
+const cm = require("./modules/connection_manager");
 
 var app = express();
 /**
@@ -22,10 +23,7 @@ auth.init();
 
 route(app);
 
-const server = app.listen(configs["port"]);
-log.l("Server running on http://127.0.0.1:" + configs["port"])
+cm();
 
-server.on('connection', function (socket) {
-    console.log("A new connection was made by a client.");
-    socket.setTimeout(5 * 60 * 1000);
-});
+app.listen(configs["port"]);
+log.l("Server running on http://127.0.0.1:" + configs["port"])
