@@ -1,10 +1,6 @@
 const http = require('http');
+const socketIOClient = require('socket.io-client');
 
-const agent = new http.Agent({
-    keepAlive: true
-  });
-
-  console.log(agent)
 
 var post_options = {
     host: 'localhost',
@@ -12,9 +8,7 @@ var post_options = {
     path: '/auth',
     method: 'POST',
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'keepAlive': true,
-        'connection':'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded'
     }
 };
 
@@ -25,7 +19,15 @@ let post_req = http.request(post_options, function (res) {
         console.log('Response: ' + chunk);
     });
     res.on('end', () => {
-        console.log('end');
+        console.log('End: ' );
+        const socket = socketIOClient('http://127.0.0.1:16916/');
+        socket.on('res', function(data) {
+            console.log('hi')
+            addMessage(data.message);
+
+            // Respond with a message including this clients' id sent from the server
+            socket.emit('i am client', {data: 'foo!', id: data.id});
+        });
     });
 });
 
