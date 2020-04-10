@@ -5,6 +5,9 @@ const io = require('socket.io')();
 const log = require("../services/logger");
 const auth = require("../services/authenticator");
 
+/**
+ * Communication protocol
+ */
 class Protocol {
     /**
      * Constructor
@@ -18,19 +21,47 @@ class Protocol {
         this.operation = operation;
         this.input = input;
         this.awaiting = awaiting;
+        this.senderId = '';
+        this.result = {};
     }
 }
+
+/**
+ * Every application or service known as unit
+ */
+class Unit {
+    constructor(name, socketId) {
+        this.name = name;
+        this.socketId = socketId;
+    }
+}
+
+// Socket storage
+let units = [];
 
 module.exports = (port = 3000) => {
 
     io.use(auth.verifySocketIO);
     io.on('connection', client => {
         log.l('Connection established.');
-        client.emit('gateway', new Protocol('sDAZSDAAsad5d', 22, {
-            customerId: 5
-        }, false));
+
+        // Add connected unit
+        units.push(new Unit(client.handshake.query.name, client.id));
+
+        // Say client connection established
+        client.emit('gateway', 200);
+
         client.on('gateway', data => {
             log.l(data);
+
+            // Set sender id, so receiver will know who is requesting 
+            data.senderId = client.handshake.query.name;
+
+            // Get receiver socket id
+            let unit = units.find((value) => value.name == data.receiverId);
+            let socketId = unit.socketId;
+
+            io.to(socketId).emit('gateway',data);
         });
     });
 

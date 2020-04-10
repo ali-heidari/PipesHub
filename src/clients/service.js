@@ -21,6 +21,9 @@ let post_req = http.request(post_options, function (res) {
     res.on('end', () => {
         console.log('End: ');
         const socket = socketIOClient('http://127.0.0.1:3000/', {
+            query: {
+                name: 'service'
+            },
             transportOptions: {
                 polling: {
                     extraHeaders: {
@@ -29,15 +32,21 @@ let post_req = http.request(post_options, function (res) {
                 }
             }
         });
+
         socket.on('gateway', function (data) {
             console.log(data);
 
+            if (data.operation == 'sum') {
+                data.res = data.input.a + data.input.b;
+            }
 
-            // Respond with a message including this clients' id sent from the server
-            socket.emit('gateway', {
-                data: 'foo!',
-                id: data.id
-            });
+            if (data.awaiting) {
+                let senderId = data.receiverId;
+                data.receiverId = data.senderId;
+                data.senderId = senderId;
+                // Respond with a message including this clients' id sent from the server
+                socket.emit('gateway', data);
+            }
         });
     });
 });
