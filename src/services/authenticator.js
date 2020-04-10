@@ -1,4 +1,6 @@
 const jose = require('jose');
+const log = require("./logger");
+
 const {
     JWE, // JSON Web Encryption (JWE)
     JWK, // JSON Web Key (JWK)
@@ -35,19 +37,47 @@ const sign = (iss, aud) =>
  */
 const verify = function (req, res, next) {
     if (exports.exceptions.indexOf(req.url) < 0) {
-        const jwt = req.headers.authorization.substr(7);
-        const verified = JWT.verify(
+        let auth=req.headers.authorization;
+        // Is token available
+        if (!auth) {
+            next(new Error('No token provided'));
+            return;
+        }
+
+        // Splice bearer 
+        const jwt = auth.substr(7);
+
+        // Is token valid
+        if (isValid(jwt)) {
+            next();
+        }
+
+        next(new Error('Invalid token'));
+        return;
+    }
+    
+    // The requested route no need for authentication
+    next();
+};
+
+const isValid = function (jwt) {
+    try {
+        JWT.verify(
             jwt,
             JWK.asKey(publicKey.toPEM())
         );
+        return true;
+    } catch (error) {
+        log.e(error);
     }
-    next();
-};
+    return false;
+}
 
 /**
  * Exports
  */
 exports.init = () => init();
-exports.verify = (req, res, next) => verify(req, res, next);
 exports.sign = (iss, aud) => sign(iss, aud);
+exports.verify = (req, res, next) => verify(req, res, next);
+exports.isValid = (jwt) => isValid(jwt);
 exports.exceptions = ['/', '/auth']

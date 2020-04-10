@@ -3,6 +3,7 @@
  */
 const io = require('socket.io')();
 const log = require("../services/logger");
+const auth = require("../services/authenticator");
 
 class Protocol {
     /**
@@ -22,6 +23,18 @@ class Protocol {
 
 module.exports = (port = 3000) => {
 
+    io.use((socket, next) => {
+        const authorization =  socket.handshake.headers['authorization'];
+        if (!authorization) {
+            next(new Error('No token provided'));
+            return;
+        }
+        let jwt =authorization;
+        if (auth.isValid(jwt)) {
+          return next();
+        }
+        return next(new Error('authentication error'));
+      });
     io.on('connection', client => {
         log.l('Connection established.');
         client.emit('gateway', new Protocol('sDAZSDAAsad5d', 22, {
