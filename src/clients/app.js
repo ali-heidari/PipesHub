@@ -13,10 +13,10 @@ var post_options = {
 };
 
 let post_req = http.request(post_options, function (res) {
-    console.log(res.headers)
+    let token = '';
     res.setEncoding('utf8');
     res.on('data', function (chunk) {
-        console.log('Response: ' + chunk);
+        token = chunk;
     });
     res.on('end', () => {
         console.log('End: ');
@@ -24,7 +24,7 @@ let post_req = http.request(post_options, function (res) {
             transportOptions: {
                 polling: {
                     extraHeaders: {
-                        'authorization': 'abc'
+                        'authorization': token
                     }
                 }
             }

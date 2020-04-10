@@ -21,7 +21,7 @@ module.exports = (app) => {
     app.use(cookieParser());
     app.use(express.static(path.join(__dirname, '/../public')));
     app.use(log.logger);
-    app.use(auth.verifySocketIO);
+    app.use(auth.verifyExpress);
 
     app.use('/', indexRouter);
     app.use('/auth', authRouter);
