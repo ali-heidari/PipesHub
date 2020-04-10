@@ -23,18 +23,7 @@ class Protocol {
 
 module.exports = (port = 3000) => {
 
-    io.use((socket, next) => {
-        const authorization =  socket.handshake.headers['authorization'];
-        if (!authorization) {
-            next(new Error('No token provided'));
-            return;
-        }
-        let jwt =authorization;
-        if (auth.isValid(jwt)) {
-          return next();
-        }
-        return next(new Error('authentication error'));
-      });
+    io.use(auth.verifySocketIO);
     io.on('connection', client => {
         log.l('Connection established.');
         client.emit('gateway', new Protocol('sDAZSDAAsad5d', 22, {
