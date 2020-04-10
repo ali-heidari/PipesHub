@@ -20,13 +20,13 @@ let post_req = http.request(post_options, function (res) {
     });
     res.on('end', () => {
         console.log('End: ' );
-        const socket = socketIOClient('http://127.0.0.1:16916/');
-        socket.on('res', function(data) {
-            console.log('hi')
-            addMessage(data.message);
+        const socket = socketIOClient('http://127.0.0.1:3000/');
+        socket.on('gateway', function(data) {
+            console.log(data);
+            
 
             // Respond with a message including this clients' id sent from the server
-            socket.emit('i am client', {data: 'foo!', id: data.id});
+            socket.emit('gateway', {data: 'foo!', id: data.id});
         });
     });
 });
