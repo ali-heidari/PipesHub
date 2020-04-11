@@ -1,5 +1,6 @@
 const http = require('http');
 const socketIOClient = require('socket.io-client');
+const log = require('../services/logger')
 
 
 var post_options = {
@@ -12,14 +13,29 @@ var post_options = {
     }
 };
 
-let post_req = http.request(post_options, function (res) {
-    let token = '';
-    res.setEncoding('utf8');
-    res.on('data', function (chunk) {
-        token = chunk;
+/**
+ * Connect to get token
+ */
+function connect() {
+    return new Promise(function (resolve, reject) {
+        let post_req = http.request(post_options, function (res) {
+            let token = '';
+            res.setEncoding('utf8');
+            res.on('data', (chunk) => token += chunk);
+            res.on('error', (err) => reject(err));
+            res.on('end', () => resolve(token));
+        });
+        post_req.write('sec=aaaa');
+        post_req.end();
+        log.l('c')
     });
-    res.on('end', () => {
-        console.log('End: ');
+}
+
+/**
+ * Connect to hub
+ */
+function establishConnection() {
+    connect().then((res) => {
         const socket = socketIOClient('http://127.0.0.1:3000/', {
             query: {
                 name: 'app'
@@ -27,7 +43,7 @@ let post_req = http.request(post_options, function (res) {
             transportOptions: {
                 polling: {
                     extraHeaders: {
-                        'authorization': token
+                        'authorization': res
                     }
                 }
             }
@@ -45,11 +61,8 @@ let post_req = http.request(post_options, function (res) {
             },
             awaiting: true
         });
-    });
-});
+    }, (err) => log.e(err));
+}
 
-// post the data
-post_req.write('sec=aaaa');
-post_req.end();
 
-console.log('request sent');
+establishConnection();

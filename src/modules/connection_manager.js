@@ -70,7 +70,7 @@ module.exports = (port = 3000) => {
             // Get receiver socket id
             let unit = getUnitByName(data.receiverId);
             if (unit == undefined) {
-                client.emit('No unit found with given name.');
+                client.emit('gateway','No unit found with given name.');
                 return;
             }
             let socketId = unit.socketId;
