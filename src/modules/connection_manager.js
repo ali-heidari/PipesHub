@@ -36,6 +36,12 @@ class Unit {
     }
 }
 
+/**
+ * Get unit by name
+ * @param {String} name Name of unit
+ */
+getUnitByName = (name) => units.find((value) => value.name == name);
+
 // Socket storage
 let units = [];
 
@@ -45,8 +51,12 @@ module.exports = (port = 3000) => {
     io.on('connection', client => {
         log.l('Connection established.');
 
-        // Add connected unit
-        units.push(new Unit(client.handshake.query.name, client.id));
+
+        let unit = getUnitByName(client.handshake.query.name);
+        if (unit == undefined)
+            // Add connected unit
+            units.push(new Unit(client.handshake.query.name, client.id));
+        else unit.socketId = client.id;
 
         // Say client connection established
         client.emit('gateway', 200);
@@ -58,10 +68,14 @@ module.exports = (port = 3000) => {
             data.senderId = client.handshake.query.name;
 
             // Get receiver socket id
-            let unit = units.find((value) => value.name == data.receiverId);
+            let unit = getUnitByName(data.receiverId);
+            if (unit == undefined) {
+                client.emit('No unit found with given name.');
+                return;
+            }
             let socketId = unit.socketId;
 
-            io.to(socketId).emit('gateway',data);
+            io.to(socketId).emit('gateway', data);
         });
     });
 
