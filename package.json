@@ -8,6 +8,7 @@
     "express": "^4.17.1",
     "http-status-codes": "^1.4.0",
     "jose": "^1.25.0",
+    "mongoose": "^5.9.9",
     "showdown": "^1.9.1",
     "socket.io": "^2.3.0",
     "yaml": "^1.8.3"
