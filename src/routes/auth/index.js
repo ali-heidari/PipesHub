@@ -3,14 +3,15 @@ const router = express.Router();
 const auth = require("../../services/authenticator");
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost/test', {
-    useNewUrlParser: true
+    useNewUrlParser: true,
+    useUnifiedTopology: true
 });
 let db = mongoose.connection;
+let schema = new mongoose.Schema({
+    name: String
+});
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
-    var schema = new mongoose.Schema({
-        name: String
-    });
     var user = mongoose.model('user', schema);
     var guest = new user({
         name: 'guest'
@@ -34,7 +35,7 @@ router.post('/', function (req, res, next) {
         console.log('Connection to client closed.');
         res.end();
     });
-    Kitten.find({
+    schema.find({
         name: `/^${req.body.name}/`
     }, () => res.end(auth.sign('localhost', 'some-uid')));
 
