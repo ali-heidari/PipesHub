@@ -49,6 +49,12 @@ getUnitByName = async (name) => {
     return null;
 }
 
+/**
+ * Add new unit to database  
+ * @param {Unit} unit Unit instance
+ */
+addUnit = (unit) => data.addUnit(unit.name, unit.socketId);
+
 getSocketId = (name) => {
     // Get receiver socket id
     let unit = getUnitByName(name);
@@ -68,9 +74,9 @@ module.exports = (port = 3000) => {
 
 
         let unit = getUnitByName(client.handshake.query.name);
-        if (unit == undefined)
+        if (unit == null)
             // Add connected unit
-            units.push(new Unit(client.handshake.query.name, client.id));
+            addUnit(new Unit(client.handshake.query.name, client.id));
         else unit.socketId = client.id;
 
         // Say client connection established
