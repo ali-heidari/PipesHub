@@ -6,28 +6,54 @@ mongoose.connect('mongodb://localhost/test', {
 const db = mongoose.connection;
 
 // Set schemas
-const schema = new mongoose.Schema({
+const schemaUser = new mongoose.Schema({
     name: String
 });
+const schemaUnit = new mongoose.Schema({
+    name: String,
+    socketId: String
+});
 
-const user = mongoose.model('user', schema);
+// Set models
+const user = mongoose.model('user', schemaUser);
+const unit = mongoose.model('unit', schemaUnit);
+
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
     console.log('Connection to mongodb established.')
 });
 
+// User functions
 module.exports.addUser = (username) => {
-    var guest = new user({
+    var usr = new user({
         name: username
     });
-    guest.save(function (err, guest) {
+    usr.save(function (err, usr) {
         if (err) return console.error(err);
-        console.log(guest);
+        console.log(`${username} added.`);
     });
 };
 
 module.exports.findUser = (username) => user.find({
     name: `${username}`
-}, (err, users) => {
-    return users;
+}, (err, res) => {
+    return res;
+}).exec().then();
+
+// Unit functions
+module.exports.addUnit = (name, socketId) => {
+    let unit = new unit({
+        name: name,
+        socketId: socketId
+    });
+    unit.save(function (err, unit) {
+        if (err) return console.error(err);
+        console.log(`unit added: ${name}`);
+    });
+};
+
+module.exports.findUser = (name) => unit.find({
+    name: `${name}`
+}, (err, res) => {
+    return res;
 }).exec().then();
