@@ -6,18 +6,21 @@ mongoose.connect('mongodb://localhost/test', {
     useNewUrlParser: true,
     useUnifiedTopology: true
 });
-let db = mongoose.connection;
-let schema = new mongoose.Schema({
+const db = mongoose.connection;
+const schema = new mongoose.Schema({
     name: String
 });
+const user = mongoose.model('user', schema);
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
-    var user = mongoose.model('user', schema);
+    ;
     var guest = new user({
         name: 'guest'
     });
-    guest.save(function (err, fluffy) {
+    console.log(guest);
+    guest.save(function (err, guest) {
         if (err) return console.error(err);
+        console.log(guest);
     });
 });
 /**
@@ -35,10 +38,11 @@ router.post('/', function (req, res, next) {
         console.log('Connection to client closed.');
         res.end();
     });
-    schema.find({
-        name: `/^${req.body.name}/`
-    }, () => res.end(auth.sign('localhost', 'some-uid')));
-
+    let result = user.find({ name: `${req.body.name}` },(err, users) => {
+        console.log(users);
+        res.end(auth.sign('localhost', 'some-uid'));
+    });
+    console.log(result)
 });
 
 module.exports = router;
