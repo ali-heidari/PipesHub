@@ -4,6 +4,7 @@
 const io = require('socket.io')();
 const log = require("../services/logger");
 const auth = require("../services/authenticator");
+const data = require("../modules/data");
 
 /**
  * Communication protocol
@@ -40,7 +41,13 @@ class Unit {
  * Get unit by name
  * @param {String} name Name of unit
  */
-getUnitByName = (name) => units.find((value) => value.name == name);
+getUnitByName = async (name) => {
+    let unitModel = (await data.findUnit(name))[0];
+    if (unitModel) {
+        return new Unit(unitModel._doc.name, unitModel._doc.socketId);
+    }
+    return null;
+}
 
 getSocketId = (name) => {
     // Get receiver socket id
@@ -52,8 +59,6 @@ getSocketId = (name) => {
     return unit.socketId;
 };
 
-// Socket storage
-let units = [];
 
 module.exports = (port = 3000) => {
 

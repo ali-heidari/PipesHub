@@ -18,7 +18,7 @@ router.post('/',async function (req, res, next) {
         console.log('Connection to client closed.');
         res.end();
     });
-    let result = await data.findUser.find(req.body.name);
+    let result = await data.findUser(req.body.name);
     console.log(result)
 });
 

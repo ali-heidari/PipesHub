@@ -52,7 +52,7 @@ module.exports.addUnit = (name, socketId) => {
     });
 };
 
-module.exports.findUser = (name) => unit.find({
+module.exports.findUnit = (name) => unit.find({
     name: `${name}`
 }, (err, res) => {
     return res;
