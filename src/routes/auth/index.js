@@ -12,14 +12,18 @@ router.get('/', function (req, res, next) {
 /**
  *  Login API 
  */
-router.post('/',async function (req, res, next) {
+router.post('/', async function (req, res, next) {
     console.log(req.body);
     req.on('close', () => {
         console.log('Connection to client closed.');
         res.end();
     });
     let result = await data.findUser(req.body.name);
-    console.log(result)
+    if (result) {
+        res.end(auth.sign('localhost', req.body.name));
+        return;
+    }
+    res.end('Invalid user');
 });
 
 module.exports = router;
