@@ -48,7 +48,8 @@ module.exports.addUnit = (name, socketId) => {
     let unt = new unit({
         name: name,
         socketId: socketId,
-        registerDate: new Date()
+        registerDate: new Date(),
+        disconnectDate: null
     });
     unt.save(function (err, unit) {
         if (err) return console.error(err);
@@ -70,4 +71,6 @@ module.exports.disconnectUnit = (name) =>
         name: `${name}`
     }, {
         disconnectDate: new Date()
+    },(err,res)=>{
+        console.log(err,res)
     });
