@@ -69,11 +69,11 @@ getSocketId = (name) => {
 module.exports = (port = 3000) => {
 
     io.use(auth.verifySocketIO);
-    io.on('connection', client => {
+    io.on('connection',async client => {
         log.l('Connection established.');
 
 
-        let unit = getUnitByName(client.handshake.query.name);
+        let unit = await getUnitByName(client.handshake.query.name);
         if (unit == null)
             // Add connected unit
             addUnit(new Unit(client.handshake.query.name, client.id));
