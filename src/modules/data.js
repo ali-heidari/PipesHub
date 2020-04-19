@@ -25,6 +25,7 @@ db.once('open', function () {
     console.log('Connection to mongodb established.')
 });
 
+
 // User functions
 module.exports.addUser = (username) => {
     var usr = new user({
@@ -55,15 +56,18 @@ module.exports.addUnit = (name, socketId) => {
     });
 };
 
-module.exports.findUnit = (name) => unit.find({
-    name: `${name}`
-}, (err, res) => {
-    return res;
-}).exec().then();
+module.exports.findUnit = (name) => {
+    return unit.find({
+        name: `${name}`
+    }, (err, res) => {
+        return res;
+    }).exec().then();
+};
 
 // Set disconnect date for unit
-module.exports.disconnectUnit = async (name) => await MyModel.update({
-    name: `${name}`
-}, {
-    disconnectDate: new Date()
-});
+module.exports.disconnectUnit = (name) =>
+    unit.update({
+        name: `${name}`
+    }, {
+        disconnectDate: new Date()
+    });

@@ -96,7 +96,13 @@ module.exports = (port = 3000) => {
 
             // Send data to receiver
             io.to(socketId).emit('responseGateway', data);
-        })
+        });
+
+        // On client disconnect
+        client.on('disconnect', () => {
+            let res = data.disconnectUnit(client.handshake.query.name);
+            log.l(res);
+        });
     });
 
     io.listen(port);
