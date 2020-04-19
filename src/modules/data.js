@@ -46,7 +46,8 @@ module.exports.findUser = (username) => user.find({
 module.exports.addUnit = (name, socketId) => {
     let unit = new unit({
         name: name,
-        socketId: socketId
+        socketId: socketId,
+        registerDate: new Date()
     });
     unit.save(function (err, unit) {
         if (err) return console.error(err);
