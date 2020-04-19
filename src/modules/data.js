@@ -13,7 +13,7 @@ const schemaUnit = new mongoose.Schema({
     name: String,
     socketId: String,
     registerDate: Date,
-    disconnectDate:Date
+    disconnectDate: Date
 });
 
 // Set models
@@ -60,3 +60,10 @@ module.exports.findUnit = (name) => unit.find({
 }, (err, res) => {
     return res;
 }).exec().then();
+
+// Set disconnect date for unit
+module.exports.disconnectUnit = async (name) => await MyModel.update({
+    name: `${name}`
+}, {
+    disconnectDate: new Date()
+});
