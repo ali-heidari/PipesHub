@@ -11,7 +11,9 @@ const schemaUser = new mongoose.Schema({
 });
 const schemaUnit = new mongoose.Schema({
     name: String,
-    socketId: String
+    socketId: String,
+    registerDate: Date,
+    disconnectDate:Date
 });
 
 // Set models
