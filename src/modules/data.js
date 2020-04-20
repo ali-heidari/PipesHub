@@ -41,7 +41,7 @@ module.exports.findUser = (username) => user.find({
     name: `${username}`
 }, (err, res) => {
     return res;
-}).exec().then();
+}).where('disconnectDate').equals(null).exec().then();
 
 // Unit functions
 module.exports.addUnit = (name, socketId) => {
@@ -71,6 +71,14 @@ module.exports.disconnectUnit = (name) =>
         name: `${name}`
     }, {
         disconnectDate: new Date()
-    },(err,res)=>{
-        console.log(err,res)
+    }, (err, res) => {
+        console.log(err, res)
     });
+
+
+// Set update socket id
+module.exports.updateSocketId = async (name, socketId) => {
+    let unitModel = (await this.findUnit(name))[0];
+    unitModel.socketId = socketId;
+    unitModel.save()
+};

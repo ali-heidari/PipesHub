@@ -69,7 +69,7 @@ getSocketId = (name) => {
 module.exports = (port = 3000) => {
 
     io.use(auth.verifySocketIO);
-    io.on('connection',async client => {
+    io.on('connection', async client => {
         log.l('Connection established.');
 
 
@@ -77,7 +77,12 @@ module.exports = (port = 3000) => {
         if (unit == null)
             // Add connected unit
             addUnit(new Unit(client.handshake.query.name, client.id));
-        else unit.socketId = client.id;
+        else {
+            unit.socketId = client.id;
+
+            // Update socket id of unit in database
+            data.updateSocketId(unit.name, unit.socketId);
+        }
 
         // Say client connection established
         client.emit('gateway', 200);
