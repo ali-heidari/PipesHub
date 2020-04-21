@@ -37,11 +37,15 @@ class Unit {
                 res.setEncoding('utf8');
                 res.on('data', (chunk) => token += chunk);
                 res.on('error', (err) => reject(err));
-                res.on('end', () => resolve(token));
+                res.on('end', () => {
+                    if (res.statusCode == 200)
+                        resolve(token)
+                    else
+                        reject(res.statusMessage);
+                });
             });
-            post_req.write('sec=aaaa');
+            post_req.write('name=guest');
             post_req.end();
-            log.l('c')
         });
     }
 
@@ -73,7 +77,9 @@ class Unit {
                         socket.emit('responseGateway', data);
                 }
             });
-        }, (err) => log.e(err));
+        }, (err) => {
+            throw err;
+        });
     }
 
     /**

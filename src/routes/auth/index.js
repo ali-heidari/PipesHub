@@ -18,11 +18,13 @@ router.post('/', async function (req, res, next) {
         res.end();
     });
     let result = await data.findUser(req.body.name);
-    if (result) {
+    if (result.length > 0) {
         res.end(auth.sign('localhost', req.body.name));
         return;
     }
-    res.end('Invalid user');
+    res.statusCode = 401;
+    res.statusMessage = 'Invalid user';
+    res.end();
 });
 
 module.exports = router;
