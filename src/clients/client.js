@@ -1,6 +1,6 @@
 const http = require('http');
 const socketIOClient = require('socket.io-client');
-const log = require('../services/logger')
+const log = require('../modules/logger')
 
 let __pipes__ = {};
 exports.a = __pipes__;

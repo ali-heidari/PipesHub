@@ -2,7 +2,7 @@
  * Persistance connections
  */
 const io = require('socket.io')();
-const log = require("../services/logger");
+const log = require("./logger");
 const auth = require("../services/authenticator");
 const data = require("../modules/data");
 

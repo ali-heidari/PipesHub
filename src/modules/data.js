@@ -4,7 +4,7 @@ mongoose.connect('mongodb://localhost/test', {
     useUnifiedTopology: true
 });
 const db = mongoose.connection;
-const log= require('../services/logger')
+const log= require('./logger')
 
 // Set schemas
 const schemaUser = new mongoose.Schema({
