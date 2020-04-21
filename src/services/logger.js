@@ -4,10 +4,14 @@ class Logger {
      * @param {String} message 
      */
     l(message) {
-        console.log(message)
+        console.log(message);
     }
+    /**
+     * Error log
+     * @param {*} exception 
+     */
     e(exception) {
-        console.error(exception)
+        console.error(exception);
     }
 }
 const logger = new Logger();

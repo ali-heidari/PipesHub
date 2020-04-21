@@ -13,7 +13,6 @@ router.get('/', function (req, res, next) {
  *  Login API 
  */
 router.post('/', async function (req, res, next) {
-    console.log(req.body);
     req.on('close', () => {
         console.log('Connection to client closed.');
         res.end();

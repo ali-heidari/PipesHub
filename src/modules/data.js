@@ -4,6 +4,7 @@ mongoose.connect('mongodb://localhost/test', {
     useUnifiedTopology: true
 });
 const db = mongoose.connection;
+const log= require('../services/logger')
 
 // Set schemas
 const schemaUser = new mongoose.Schema({
@@ -22,7 +23,7 @@ const unit = mongoose.model('unit', schemaUnit);
 
 db.on('error', console.error.bind(console, 'connection error:'));
 db.once('open', function () {
-    console.log('Connection to mongodb established.')
+    log.l('Connection to mongodb established.')
 });
 
 
