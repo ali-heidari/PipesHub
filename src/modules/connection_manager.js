@@ -55,9 +55,9 @@ getUnitByName = async (name) => {
  */
 addUnit = (unit) => data.addUnit(unit.name, unit.socketId);
 
-getSocketId = (name) => {
+getSocketId = async (name) => {
     // Get receiver socket id
-    let unit = getUnitByName(name);
+    let unit = await getUnitByName(name);
     if (unit == undefined) {
         client.emit('gateway', 'No unit found with given name.');
         return;
@@ -87,17 +87,17 @@ module.exports = (port = 3000) => {
         // Say client connection established
         client.emit('gateway', 200);
 
-        client.on('gateway', data => {
+        client.on('gateway', async data => {
             // Get socked id of receiver
-            let socketId = getSocketId(data.receiverId);
+            let socketId = await getSocketId(data.receiverId);
 
             // Send data to receiver
             io.to(socketId).emit('gateway', data);
         });
 
-        client.on('responseGateway', data => {
+        client.on('responseGateway', async data => {
             // Get socked id of receiver
-            let socketId = getSocketId(data.senderId);
+            let socketId = await getSocketId(data.senderId);
 
             // Send data to receiver
             io.to(socketId).emit('responseGateway', data);
