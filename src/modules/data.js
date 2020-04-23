@@ -81,5 +81,6 @@ module.exports.disconnectUnit = (name) =>
 module.exports.updateSocketId = async (name, socketId) => {
     let unitModel = (await this.findUnit(name))[0];
     unitModel.socketId = socketId;
+    unitModel.disconnectDate = null;
     unitModel.save()
 };
