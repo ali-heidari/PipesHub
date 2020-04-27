@@ -8,6 +8,7 @@ const log = require("./modules/logger");
 const auth = require("./services/authenticator");
 const route = require("./modules/route");
 const cm = require("./modules/connection_manager");
+const test = require("./clients/test")
 
 var app = express();
 /**
@@ -26,4 +27,7 @@ route(app);
 cm();
 
 app.listen(configs["port"]);
-log.l("Server running on http://127.0.0.1:" + configs["port"])
+log.l("Server running on http://127.0.0.1:" + configs["port"]);
+
+
+setTimeout(async () => await test.run(), 2000);

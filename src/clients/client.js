@@ -102,6 +102,7 @@ class Unit {
             });
         });
     }
+    
     /**
      * Send a request to other unit and no result expected
      * @param {*} unitId The receiver unit id
