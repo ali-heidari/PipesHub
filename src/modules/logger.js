@@ -1,10 +1,12 @@
-class Logger {
+class Logger {    
     /**
      * Normal log
      * @param {String} message 
      */
     l(message) {
-        console.log(message);
+        const stackObj = {};
+        Error.captureStackTrace(stackObj);
+        console.log(message, stackObj.stack.split('\n')[3]);
     }
     /**
      * Error log
