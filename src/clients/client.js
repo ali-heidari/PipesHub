@@ -67,7 +67,6 @@ class Unit {
             });
             let socket = this.socket;
             this.socket.on('gateway', function (data) {
-                log.l(data);
                 if (data instanceof Object) {
                     if (data.receiverId !== __pipes__.name)
                         data.res = "I am not who you looking for :)";
