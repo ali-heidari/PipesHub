@@ -70,10 +70,16 @@ class Unit {
                 if (data instanceof Object) {
                     if (data.receiverId !== __pipes__.name)
                         data.res = "I am not who you looking for :)";
-                    else
-                        data.res = __pipes__[data.operation](data.input);
-                    if (data.awaiting)
-                        socket.emit('responseGateway', data);
+                    else {
+                        if (data.awaiting)
+                            if (!data.input) data.input={};
+                            
+                            data.input.pushResponse = res => {
+                                data.res = res;
+                                socket.emit('responseGateway', data);
+                            };
+                        __pipes__[data.operation](data.input);
+                    }
                 }
             });
         }, (err) => {
