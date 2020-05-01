@@ -31,8 +31,7 @@ exports.run = function () {
         res = await ca.ask('cService', 'list', null);
         console.log(res.res);
 
-        res = await ca.ask('cService', 'message', null);
-        console.log(res.res);
+        ca.persist('cService', 'message', null, data => console.log(data.res));
 
     }, 100);
 }
