@@ -30,4 +30,4 @@ app.listen(configs["port"]);
 log.l("Server running on http://127.0.0.1:" + configs["port"]);
 
 
-setTimeout(async () => await test.run(), 2000);
+// setTimeout(async () => await test.run(), 2000);
