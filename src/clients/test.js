@@ -40,9 +40,10 @@ exports.run = function () {
 
         // ca.persist('cService', 'log', null, data => logger.hash_log(data.res));
 
-
-        let res = await logger.hash_checker('d0231e99e9c594b6b96a8fe886bb209f4658b83933af465aa95dfe6c282e5a84');
+        let res = await logger.hash_checker('524aedd87ee3af6fed6ff26f1a71ddab87a59dfb9a468851562e178578d84086');
         console.log(res);
+
+        // logger.clustered_log();
 
     }, 100);
 }
