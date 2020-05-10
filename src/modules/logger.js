@@ -48,7 +48,7 @@ class Logger {
         let log = JSON.stringify(log_data);
 
         // Write in log file
-        fs.appendFile('./system.log', log+'\n', function (err) {
+        fs.appendFile('./system.log', log + '\n', function (err) {
             if (err) return console.error(err);
         });
 
@@ -58,6 +58,42 @@ class Logger {
         // Set variables for next log
         this.indexer++;
         this.lastHash = hash;
+    }
+
+    /**
+     * Check if hash exists in file or not
+     * @param {String} hash 
+     */
+    async hash_checker(hash) {
+        return new Promise(async resolve => {
+            // Read log file
+            let content = await fs.readFileSync('./system.log', "utf8");
+
+            let lHash = ''; // temp last hash
+            let logData = null; // temp log data
+
+            // Iterate through lines of file
+            for (const line of content.split('\n')) {
+
+                if (line == '') continue;
+
+                // Parse the line to get structured log data
+                logData = JSON.parse(line);
+
+                // Generate hash from the first line
+                let gHash = this.generate_hash(lHash.concat(logData.log));
+
+                // Check the new hash if equals to given hash
+                if (gHash === hash)
+                    // Found the hash between log hashes
+                    return resolve(true);
+
+                lHash = gHash;
+            }
+
+            // Could not match provided hash with log hashes
+            return resolve(false);
+        });
     }
 }
 const logger = new Logger();
@@ -74,6 +110,9 @@ exports.l = (message) => {
 exports.e = (exception) => {
     logger.e(exception)
 };
-exports.hash_log = (exception) => {
-    logger.hash_log(exception)
+exports.hash_log = (message) => {
+    logger.hash_log(message)
+};
+exports.hash_checker = async (message) => {
+    return logger.hash_checker(message)
 };

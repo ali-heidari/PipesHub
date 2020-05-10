@@ -1,12 +1,11 @@
-const logger =require("../modules/logger")
+const logger = require("../modules/logger")
 
 const App = require("./app").App;
 const Service = require("./service").Service;
 
 exports.run = function () {
-    let ca = new App('cApp');
-    let cs = new Service('cService');
-
+    // let ca = new App('cApp');
+    // let cs = new Service('cService');
 
     // cs.add('sum', (args) => args.pushResponse(args.a + args.b));
     // let theList = []
@@ -15,9 +14,9 @@ exports.run = function () {
     // cs.add('message', (args) => setInterval(() => {
     //     args.pushResponse("Time is " + new Date());
     // }, 5000))
-    cs.add('log', (args) => setInterval(() => {
-        args.pushResponse("Time is " + new Date());
-    }, 5000))
+    // cs.add('log', (args) => setInterval(() => {
+    //     args.pushResponse("Time is " + new Date());
+    // }, 5000))
 
 
     setTimeout(async () => {
@@ -39,7 +38,11 @@ exports.run = function () {
 
         // ca.persist('cService', 'message', null, data => console.log(data.res));
 
-        ca.persist('cService', 'log', null, data => logger.hash_log(data.res));
+        // ca.persist('cService', 'log', null, data => logger.hash_log(data.res));
+
+
+        let res = await logger.hash_checker('d0231e99e9c594b6b96a8fe886bb209f4658b83933af465aa95dfe6c282e5a84');
+        console.log(res);
 
     }, 100);
 }
