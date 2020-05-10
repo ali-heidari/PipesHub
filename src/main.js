@@ -32,5 +32,7 @@ log.l("Server running on http://127.0.0.1:" + configs["port"]);
 
 setTimeout(async () => await test.run(), 2000);
 
+
+// To run log clustered, 
 // const log = require("./modules/logger");
 // log.clustered_log();
