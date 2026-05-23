@@ -1,8 +1,5 @@
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost/test', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-});
+mongoose.connect('mongodb://localhost/test');
 const db = mongoose.connection;
 const log= require('./logger')
 
@@ -68,7 +65,7 @@ module.exports.findUnit = (name) => {
 
 // Set disconnect date for unit
 module.exports.disconnectUnit = (name) =>
-    unit.update({
+    unit.updateOne({
         name: `${name}`
     }, {
         disconnectDate: new Date()
