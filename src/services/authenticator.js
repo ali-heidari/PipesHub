@@ -1,5 +1,5 @@
 const jose = require('jose');
-const log = require("./logger");
+const log = require("../modules/logger");
 
 const {
     JWE, // JSON Web Encryption (JWE)

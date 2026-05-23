@@ -4,10 +4,11 @@
 const yaml = require('yaml');
 const fs = require('fs');
 const express = require('express');
-const log = require("./services/logger");
+const log = require("./modules/logger");
 const auth = require("./services/authenticator");
 const route = require("./modules/route");
 const cm = require("./modules/connection_manager");
+const test = require("./clients/test");
 
 var app = express();
 /**
@@ -23,7 +24,18 @@ auth.init();
 
 route(app);
 
-cm();
+const port = process.env.PORT || configs["port"];
+const socketPort = process.env.SOCKET_PORT || 3000;
 
-app.listen(configs["port"]);
-log.l("Server running on http://127.0.0.1:" + configs["port"])
+cm(socketPort);
+
+app.listen(port);
+log.l("Server running on http://127.0.0.1:" + port);
+
+
+setTimeout(async () => await test.run(), 2000);
+
+
+// To run log clustered, 
+// const log = require("./modules/logger");
+// log.clustered_log();

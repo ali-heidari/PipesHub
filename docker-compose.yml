@@ -1,0 +1,93 @@
+# PipesHub cluster — 3 nodes, each with an embedded AIxKer agent.
+#
+# AIxKer forms a self-organizing peer mesh via UDP multicast gossip.
+# When a node is overloaded the XDP hook redirects new TCP SYNs to a free
+# peer at kernel level — no proxy, no extra hop.
+#
+# All three nodes share one MongoDB instance for user/unit registry.
+#
+# Production note: for full XDP NIC-bypass performance, deploy one container
+# per physical host using network_mode: host instead of the bridge below.
+
+services:
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - pipeshub-net
+
+  pipeshub-1:
+    build: .
+    privileged: true          # required for eBPF map access
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - BPF
+    security_opt:
+      - seccomp:unconfined    # required for bpf() syscall
+    environment:
+      MONGO_URI: mongodb://mongo:27017/pipeshub
+      PORT: 16916
+      SOCKET_PORT: 3000
+    ports:
+      - "16916:16916"         # REST auth API
+      - "3000:3000"           # Socket.io hub
+    depends_on:
+      - mongo
+    networks:
+      - pipeshub-net
+    restart: unless-stopped
+
+  pipeshub-2:
+    build: .
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - BPF
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      MONGO_URI: mongodb://mongo:27017/pipeshub
+      PORT: 16916
+      SOCKET_PORT: 3000
+    ports:
+      - "16917:16916"
+      - "3001:3000"
+    depends_on:
+      - mongo
+    networks:
+      - pipeshub-net
+    restart: unless-stopped
+
+  pipeshub-3:
+    build: .
+    privileged: true
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - BPF
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      MONGO_URI: mongodb://mongo:27017/pipeshub
+      PORT: 16916
+      SOCKET_PORT: 3000
+    ports:
+      - "16918:16916"
+      - "3002:3000"
+    depends_on:
+      - mongo
+    networks:
+      - pipeshub-net
+    restart: unless-stopped
+
+networks:
+  pipeshub-net:
+    driver: bridge
+
+volumes:
+  mongo_data:

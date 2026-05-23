@@ -1,9 +1,11 @@
 /**
  * Persistance connections
  */
-const io = require('socket.io')();
-const log = require("../services/logger");
+const { Server } = require('socket.io');
+const io = new Server({ cors: { origin: '*' } });
+const log = require("./logger");
 const auth = require("../services/authenticator");
+const data = require("../modules/data");
 
 /**
  * Communication protocol
@@ -40,11 +42,23 @@ class Unit {
  * Get unit by name
  * @param {String} name Name of unit
  */
-getUnitByName = (name) => units.find((value) => value.name == name);
+getUnitByName = async (name) => {
+    let unitModel = (await data.findUnit(name))[0];
+    if (unitModel) {
+        return new Unit(unitModel._doc.name, unitModel._doc.socketId);
+    }
+    return null;
+}
 
-getSocketId = (name) => {
+/**
+ * Add new unit to database  
+ * @param {Unit} unit Unit instance
+ */
+addUnit = (unit) => data.addUnit(unit.name, unit.socketId);
+
+getSocketId = async (name) => {
     // Get receiver socket id
-    let unit = getUnitByName(name);
+    let unit = await getUnitByName(name);
     if (unit == undefined) {
         client.emit('gateway', 'No unit found with given name.');
         return;
@@ -52,40 +66,49 @@ getSocketId = (name) => {
     return unit.socketId;
 };
 
-// Socket storage
-let units = [];
 
 module.exports = (port = 3000) => {
 
     io.use(auth.verifySocketIO);
-    io.on('connection', client => {
+    io.on('connection', async client => {
         log.l('Connection established.');
 
 
-        let unit = getUnitByName(client.handshake.query.name);
-        if (unit == undefined)
+        let unit = await getUnitByName(client.handshake.query.name);
+        if (unit == null)
             // Add connected unit
-            units.push(new Unit(client.handshake.query.name, client.id));
-        else unit.socketId = client.id;
+            addUnit(new Unit(client.handshake.query.name, client.id));
+        else {
+            unit.socketId = client.id;
+
+            // Update socket id of unit in database
+            data.updateSocketId(unit.name, unit.socketId);
+        }
 
         // Say client connection established
         client.emit('gateway', 200);
 
-        client.on('gateway', data => {
+        client.on('gateway', async data => {
             // Get socked id of receiver
-            let socketId = getSocketId(data.receiverId);
+            let socketId = await getSocketId(data.receiverId);
 
             // Send data to receiver
             io.to(socketId).emit('gateway', data);
         });
 
-        client.on('responseGateway', data => {
+        client.on('responseGateway', async data => {
             // Get socked id of receiver
-            let socketId = getSocketId(data.senderId);
+            let socketId = await getSocketId(data.senderId);
 
             // Send data to receiver
             io.to(socketId).emit('responseGateway', data);
-        })
+        });
+
+        // On client disconnect
+        client.on('disconnect', () => {
+            let res = data.disconnectUnit(client.handshake.query.name);
+            log.l(res);
+        });
     });
 
     io.listen(port);
