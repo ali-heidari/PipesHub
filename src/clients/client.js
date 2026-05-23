@@ -57,12 +57,8 @@ class Unit {
                 query: {
                     name: this.name
                 },
-                transportOptions: {
-                    polling: {
-                        extraHeaders: {
-                            'authorization': res
-                        }
-                    }
+                extraHeaders: {
+                    'authorization': res
                 }
             });
             let socket = this.socket;

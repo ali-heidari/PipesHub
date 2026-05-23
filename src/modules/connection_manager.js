@@ -1,7 +1,8 @@
 /**
  * Persistance connections
  */
-const io = require('socket.io')();
+const { Server } = require('socket.io');
+const io = new Server({ cors: { origin: '*' } });
 const log = require("./logger");
 const auth = require("../services/authenticator");
 const data = require("../modules/data");
