@@ -24,10 +24,13 @@ auth.init();
 
 route(app);
 
-cm();
+const port = process.env.PORT || configs["port"];
+const socketPort = process.env.SOCKET_PORT || 3000;
 
-app.listen(configs["port"]);
-log.l("Server running on http://127.0.0.1:" + configs["port"]);
+cm(socketPort);
+
+app.listen(port);
+log.l("Server running on http://127.0.0.1:" + port);
 
 
 setTimeout(async () => await test.run(), 2000);
