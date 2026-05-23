@@ -4,11 +4,11 @@ NodeJS service to make other services communicate through it.
 
 Run the server and derive class from client. **Clients available in JavaScript, Java and Python**
 
-JavaScript: https://github.com/ali-heidari/PipesClientJS
+JavaScript: [PipesClientJS](https://github.com/ali-heidari/PipesClientJS)
 
-Python: https://github.com/ali-heidari/PipesClientPython
+Python: [PipesClientPython](https://github.com/ali-heidari/PipesClientPython)
 
-Java: https://github.com/ali-heidari/PipesClientJava
+Java: [PipesClientJava](https://github.com/ali-heidari/PipesClientJava)
 
 ## Usage client
 
@@ -24,3 +24,7 @@ Java: https://github.com/ali-heidari/PipesClientJava
 1. The client connects to REST API of server and gets a JWT with a valid secret key
 2. The Client handshakes with socket part of the server with JWT as an authorization header
 3. The client use one of 3 types of communication. Described in the Usage Client section
+
+## Standards
+
+This project follows [`ai-agent-standards`](https://github.com/ali-heidari/ai-agent-standards). See [`.agent/agent-instructions.md`](.agent/agent-instructions.md) for project-specific AI agent guidance.
