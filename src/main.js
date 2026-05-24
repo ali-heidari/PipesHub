@@ -26,7 +26,8 @@ auth.init();
 
 route(app);
 
-const port       = process.env.PORT        || configs["port"];
+const httpPort   = process.env.PORT        || configs["port"];
+const httpsPort  = process.env.HTTPS_PORT;
 const socketPort = process.env.SOCKET_PORT || 3000;
 const sslKey     = process.env.SSL_KEY;
 const sslCert    = process.env.SSL_CERT;
@@ -37,12 +38,12 @@ const sslOptions = (sslKey && sslCert)
 
 cm(socketPort, sslOptions);
 
-if (sslOptions) {
-    https.createServer(sslOptions, app).listen(port, '0.0.0.0');
-    log.l("Server running on https://0.0.0.0:" + port);
-} else {
-    http.createServer(app).listen(port, '0.0.0.0');
-    log.l("Server running on http://0.0.0.0:" + port);
+http.createServer(app).listen(httpPort, '0.0.0.0');
+log.l("Server running on http://0.0.0.0:" + httpPort);
+
+if (sslOptions && httpsPort) {
+    https.createServer(sslOptions, app).listen(httpsPort, '0.0.0.0');
+    log.l("Server running on https://0.0.0.0:" + httpsPort);
 }
 
 
