@@ -8,11 +8,13 @@ exports.setEngine = function (app) {
         fs.readFile(filePath, function (err, content) {
             if (err)
                 return callback(err);
-            // this is an extremely simple template engine
-            const md = content.toString()
-                .replace('?title?', options.title)
-                .replace('?message?', options.message);
-            const converter=new showdown.Converter();
+            // replace all ?key? tokens from options
+            let md = content.toString();
+            Object.entries(options).forEach(([key, val]) => {
+                if (typeof val !== 'string' && typeof val !== 'number' && typeof val !== 'boolean') return;
+                md = md.replace(new RegExp(`\\?${key}\\?`, 'g'), String(val));
+            });
+            const converter = new showdown.Converter({ tables: true });
             let html = converter.makeHtml(md);
             return callback(null, html);
         });

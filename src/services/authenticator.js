@@ -60,23 +60,17 @@ const verifySocketIO = function (socket, next) {
 }
 
 const verify = function (auth, next) {
-    // Is token available
     if (!auth) {
-        next(new Error('No token provided'));
-        return;
+        return next(new Error('No token provided'));
     }
 
-    // Splice bearer 
-    const jwt = auth;
-    if (jwt.startsWith('bearer ')) jwt = auth.substr(7);
+    const jwt = auth.startsWith('bearer ') ? auth.substr(7) : auth;
 
-    // Is token valid
     if (isValid(jwt)) {
-        next();
+        return next();
     }
 
-    next(new Error('Invalid token'));
-    return;
+    return next(new Error('Invalid token'));
 }
 
 const isValid = function (jwt) {
