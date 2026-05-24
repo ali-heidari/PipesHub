@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/test');
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/pipeshub');
 const db = mongoose.connection;
 const log= require('./logger')
 
