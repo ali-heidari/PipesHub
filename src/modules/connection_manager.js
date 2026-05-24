@@ -111,5 +111,5 @@ module.exports = (port = 3000) => {
         });
     });
 
-    io.listen(port);
+    io.listen(port, { host: '0.0.0.0' });
 }
