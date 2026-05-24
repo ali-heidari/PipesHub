@@ -5,6 +5,7 @@
   "main": "main.js",
   "dependencies": {
     "cookie-parser": "^1.4.5",
+    "cors": "^2.8.6",
     "express": "^4.21.0",
     "http-status-codes": "^1.4.0",
     "jose": "^1.25.0",
