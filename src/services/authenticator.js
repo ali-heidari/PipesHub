@@ -10,25 +10,17 @@ const {
     errors // errors utilized by jose
 } = jose;
 
-let privateKey, publicKey;
-/**
- * Generate private and public key
- */
-const init = async () => {
-    privateKey = await JWK.generate("RSA", 2048, {
-        use: 'sig'
-    });
-    let jwk = privateKey.toJWK();
-    publicKey = JWK.asKey(jwk);
-}
-/**
- * Sign the token
- */
+// Shared secret — must be identical across all nodes.
+// Set JWT_SECRET env var; never use the default in production.
+const _secret = Buffer.from(process.env.JWT_SECRET || 'pipeshub-default-secret');
+
+const init = async () => { /* no-op: secret comes from env */ }
+
 const sign = (iss, aud) =>
     JWT.sign({
         'aid': 'some-key'
-    }, privateKey, {
-        algorithm: 'PS512',
+    }, _secret, {
+        algorithm: 'HS256',
         audience: aud,
         issuer: iss
     });
@@ -75,10 +67,7 @@ const verify = function (auth, next) {
 
 const isValid = function (jwt) {
     try {
-        JWT.verify(
-            jwt,
-            JWK.asKey(publicKey.toPEM())
-        );
+        JWT.verify(jwt, _secret);
         return true;
     } catch (error) {
         log.e(error);
