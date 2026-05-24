@@ -1,8 +1,9 @@
 /**
  * Persistance connections
  */
+const http    = require('http');
+const https   = require('https');
 const { Server } = require('socket.io');
-const io = new Server({ cors: { origin: '*' } });
 const log = require("./logger");
 const auth = require("../services/authenticator");
 const data = require("../modules/data");
@@ -67,7 +68,13 @@ getSocketId = async (name) => {
 };
 
 
-module.exports = (port = 3000) => {
+module.exports = (port = 3000, sslOptions = null) => {
+
+    const server = sslOptions
+        ? https.createServer(sslOptions)
+        : http.createServer();
+
+    const io = new Server(server, { cors: { origin: '*' } });
 
     io.use(auth.verifySocketIO);
     io.on('connection', async client => {
@@ -111,5 +118,5 @@ module.exports = (port = 3000) => {
         });
     });
 
-    io.listen(port, { host: '0.0.0.0' });
+    server.listen(port, '0.0.0.0');
 }
