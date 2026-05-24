@@ -55,7 +55,7 @@ const verifyExpress = function (req, res, next) {
  * @param {*} next 
  */
 const verifySocketIO = function (socket, next) {
-    const auth = socket.handshake.headers['authorization'];
+    const auth = socket.handshake.auth?.token ?? socket.handshake.headers['authorization'];
     return verify(auth, next);
 }
 
