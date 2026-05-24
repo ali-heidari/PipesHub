@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/test');
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost/pipeshub');
 const db = mongoose.connection;
 const log= require('./logger')
 
@@ -37,9 +38,7 @@ module.exports.addUser = (username) => {
 
 module.exports.findUser = (username) => user.find({
     name: `${username}`
-}, (err, res) => {
-    return res;
-}).where('disconnectDate').equals(null).exec().then();
+}).where('disconnectDate').equals(null).exec();
 
 // Unit functions
 module.exports.addUnit = (name, socketId) => {
@@ -58,9 +57,7 @@ module.exports.addUnit = (name, socketId) => {
 module.exports.findUnit = (name) => {
     return unit.find({
         name: `${name}`
-    }, (err, res) => {
-        return res;
-    }).exec().then();
+    }).exec();
 };
 
 // Set disconnect date for unit

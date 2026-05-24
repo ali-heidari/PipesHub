@@ -29,8 +29,8 @@ const socketPort = process.env.SOCKET_PORT || 3000;
 
 cm(socketPort);
 
-app.listen(port);
-log.l("Server running on http://127.0.0.1:" + port);
+app.listen(port, '0.0.0.0');
+log.l("Server running on http://0.0.0.0:" + port);
 
 
 setTimeout(async () => await test.run(), 2000);

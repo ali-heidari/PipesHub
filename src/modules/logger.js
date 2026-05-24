@@ -74,6 +74,7 @@ class Logger {
     async hash_checker(hash) {
         return new Promise(async resolve => {
             // Read log file
+            if (!fs.existsSync('./system.log')) return resolve(false);
             let content = await fs.readFileSync('./system.log', "utf8");
 
             let lHash = ''; // temp last hash

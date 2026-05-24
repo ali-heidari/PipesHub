@@ -1,5 +1,12 @@
 
-# Home
+# PipesHub
 
-You can **post** a request with your valid security key to **/auth** and retrieve the **JWToken**.
-Use it for future calls.
+| | |
+| --- | --- |
+| **Node IP** | ?ip? |
+| **Requested Host** | ?host? |
+| **Redirected by AIxKer** | ?redirected? |
+
+---
+
+POST to **/auth** with your name to get a JWT, then connect via Socket.io.

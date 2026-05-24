@@ -2,6 +2,7 @@
 const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const cors = require('cors');
 const engine = require("./md_engine");
 const log = require("./logger");
 const auth = require("../services/authenticator");
@@ -13,7 +14,13 @@ module.exports = (app) => {
 
     app.set('views', path.join(__dirname, '/../views'));
     engine.setEngine(app);
-    
+
+    app.use(cors({
+        origin: true,
+        allowedHeaders: ['Content-Type', 'Authorization'],
+        credentials: true,
+    }));
+
     app.use(express.json());
     app.use(express.urlencoded({
         extended: false
