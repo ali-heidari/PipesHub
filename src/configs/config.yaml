@@ -1,1 +1,7 @@
 port: 16916
+redis:
+  host: localhost
+  port: 6379
+  db: 0
+mongodb:
+  uri: mongodb://localhost/pipeshub

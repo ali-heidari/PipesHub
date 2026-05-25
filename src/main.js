@@ -10,6 +10,7 @@ const log     = require("./modules/logger");
 const auth    = require("./services/authenticator");
 const route   = require("./modules/route");
 const cm      = require("./modules/connection_manager");
+const redis   = require("./modules/redis");
 const test    = require("./clients/test");
 
 var app = express();
@@ -23,6 +24,11 @@ const configs = yaml.parse(configContent);
  * Set configs
  */
 auth.init();
+
+// Initialize Redis
+redis.init(configs.redis).catch(err => {
+    log.l(`Failed to initialize Redis: ${err.message}`);
+});
 
 route(app);
 
