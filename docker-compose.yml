@@ -1,100 +1,86 @@
-# PipesHub cluster — 3 nodes, each with an embedded AIxKer agent.
+# PipesHub cluster — 3 nodes + MongoDB on macvlan
 #
-# AIxKer forms a self-organizing peer mesh via UDP multicast gossip.
-# When a node is overloaded the XDP hook redirects new TCP SYNs to a free
-# peer at kernel level — no proxy, no extra hop.
+# All containers share the macvlan network; DB traffic stays internal.
+# TLS is terminated by node-1 using the Let's Encrypt cert baked into the image.
+#   - mongodb: 172.18.0.5  (port 27017, no auth)
+#   - node-1:  172.18.0.2  (HTTP :16916, HTTPS :16917, WSS :3000)
+#   - node-2:  172.18.0.3
+#   - node-3:  172.18.0.4
 #
-# All three nodes share one MongoDB instance for user/unit registry.
+# Create the macvlan network once on the host before starting:
+#   docker network create -d macvlan \
+#     --subnet=172.18.0.0/24 --gateway=172.18.0.1 \
+#     -o parent=ens4 pipeshub-macvlan
 #
-# Network: macvlan — each container appears as a distinct device on the
-# physical LAN (192.168.101.0/24). Change `parent` below to match your
-# host NIC (ip link show). Port publishing is not used; reach node-1
-# directly at 192.168.101.11:16916 and 192.168.101.11:3000.
+# Get the certificate first, then build:
+#   ./get-cert.sh <CLOUDFLARE_API_TOKEN>
+#   docker build -f pipeshub.dockerfile .
 #
-# Production note: for full XDP NIC-bypass performance, deploy one container
-# per physical host using network_mode: host instead of macvlan below.
+# After deploying, point HUB_HOSTS at node-1's IP (172.18.0.2).
+
+x-node: &node
+  build:
+    context: .
+    dockerfile: pipeshub.dockerfile
+  cap_add:
+    - NET_ADMIN
+    - SYS_ADMIN
+    - BPF
+    - PERFMON
+  security_opt:
+    - seccomp:unconfined
+  environment:
+    REDIS_HOST: 172.18.0.5
+    REDIS_PORT: 6379
+    REDIS_DB: 0
+    PORT: 16916
+    HTTPS_PORT: 16917
+    SOCKET_PORT: 3000
+    JWT_SECRET: af75314b06844a97619dbaeea90d8520b0d39cc020414a96bac11539faf01c39
+  depends_on:
+    - redis
+  restart: unless-stopped
 
 services:
 
-  mongo:
-    image: mongo:7
-    restart: unless-stopped
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
     volumes:
-      - mongo_data:/data/db
+      - redis-data:/data
     networks:
-      pipeshub-net:
-        ipv4_address: 192.168.101.10
+      pipeshub-macvlan:
+        ipv4_address: 172.18.0.5
+    restart: unless-stopped
 
   node-1:
-    build: .
-    privileged: true          # required for eBPF map access
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
-      - BPF
-    security_opt:
-      - seccomp:unconfined    # required for bpf() syscall
-    environment:
-      MONGO_URI: mongodb://192.168.101.10:27017/pipeshub
-      PORT: 16916
-      SOCKET_PORT: 3000
-    depends_on:
-      - mongo
+    <<: *node
+    ports:
+      - "16916:16916"
+      - "443:16917"
+      - "3000:3000"
     networks:
-      pipeshub-net:
-        ipv4_address: 192.168.101.11
-    restart: unless-stopped
+      pipeshub-macvlan:
+        ipv4_address: 172.18.0.2
 
   node-2:
-    build: .
-    privileged: true
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
-      - BPF
-    security_opt:
-      - seccomp:unconfined
-    environment:
-      MONGO_URI: mongodb://192.168.101.10:27017/pipeshub
-      PORT: 16916
-      SOCKET_PORT: 3000
-    depends_on:
-      - mongo
+    <<: *node
     networks:
-      pipeshub-net:
-        ipv4_address: 192.168.101.12
-    restart: unless-stopped
+      pipeshub-macvlan:
+        ipv4_address: 172.18.0.3
 
   node-3:
-    build: .
-    privileged: true
-    cap_add:
-      - NET_ADMIN
-      - SYS_ADMIN
-      - BPF
-    security_opt:
-      - seccomp:unconfined
-    environment:
-      MONGO_URI: mongodb://mongo:27017/pipeshub
-      PORT: 16916
-      SOCKET_PORT: 3000
-    depends_on:
-      - mongo
+    <<: *node
     networks:
-      pipeshub-net:
-        ipv4_address: 192.168.101.13
-    restart: unless-stopped
+      pipeshub-macvlan:
+        ipv4_address: 172.18.0.4
 
 networks:
-  pipeshub-net:
+  pipeshub-macvlan:
     driver: macvlan
     driver_opts:
-      parent: wlp3s0            # change to your host NIC name (e.g. enp3s0, ens18)
+      parent: ens4
     ipam:
       config:
-        - subnet: 192.168.101.0/24
-          ip_range: 192.168.101.0/24
-          gateway: 192.168.101.1
-
-volumes:
-  mongo_data:
+        - subnet: 172.18.0.0/24
+          gateway: 172.18.0.1
