@@ -46,7 +46,7 @@ class Unit {
 getUnitByName = async (name) => {
     let unitModel = (await data.findUnit(name))[0];
     if (unitModel) {
-        return new Unit(unitModel._doc.name, unitModel._doc.socketId);
+        return new Unit(unitModel.name, unitModel.socketId);
     }
     return null;
 }
