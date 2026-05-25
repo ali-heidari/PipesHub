@@ -10,10 +10,11 @@ module.exports.addUser = async (username) => {
 
 module.exports.findUser = async (username) => {
     try {
-        return await redis.get(`user:${username}`);
+        const user = await redis.get(`user:${username}`);
+        return user ? [user] : [];
     } catch (err) {
         console.error(err);
-        return null;
+        return [];
     }
 };
 
