@@ -30,9 +30,7 @@ x-node: &node
   security_opt:
     - seccomp:unconfined
   environment:
-    REDIS_HOST: 172.18.0.5
-    REDIS_PORT: 6379
-    REDIS_DB: 0
+    REDIS_URL: redis://172.18.0.5:6379/0
     PORT: 16916
     HTTPS_PORT: 16917
     SOCKET_PORT: 3000
