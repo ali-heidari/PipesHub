@@ -7,15 +7,16 @@ let client = null;
  * Initialize Redis client
  */
 const init = async (redisConfig = {}) => {
-  const host = redisConfig.host || process.env.REDIS_HOST || 'localhost';
-  const port = redisConfig.port || process.env.REDIS_PORT || 6379;
-  const db = redisConfig.db || process.env.REDIS_DB || 0;
+  const url = process.env.REDIS_URL;
 
-  client = redis.createClient({
-    host,
-    port,
-    db
-  });
+  if (url) {
+    client = redis.createClient({ url });
+  } else {
+    const host     = redisConfig.host || process.env.REDIS_HOST || 'localhost';
+    const port     = parseInt(redisConfig.port || process.env.REDIS_PORT || 6379);
+    const database = parseInt(redisConfig.db   || process.env.REDIS_DB   || 0);
+    client = redis.createClient({ socket: { host, port }, database });
+  }
 
   client.on('error', (err) => {
     log.l(`Redis Client Error: ${err}`);
