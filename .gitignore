@@ -113,3 +113,7 @@ dist
 .yarn/unplugged
 .yarn/build-state.yml
 .pnp.*
+
+# TLS certificates — user-provided, not in version control
+certs/
+
