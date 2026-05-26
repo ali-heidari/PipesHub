@@ -29,12 +29,15 @@ x-node: &node
     - PERFMON
   security_opt:
     - seccomp:unconfined
+  volumes:
+    - ./certs/fullchain.pem:/app/certs/fullchain.pem:ro
+    - ./certs/privkey.pem:/app/certs/privkey.pem:ro
   environment:
     REDIS_URL: redis://172.18.0.5:6379/0
     PORT: 16916
     HTTPS_PORT: 16917
     SOCKET_PORT: 3000
-    JWT_SECRET: af75314b06844a97619dbaeea90d8520b0d39cc020414a96bac11539faf01c39
+    JWT_SECRET: SOME-LONG-RANDOM-STRING-HERE-USING-OPENSSL-RANDOM-SECRET
   depends_on:
     - redis
   restart: unless-stopped

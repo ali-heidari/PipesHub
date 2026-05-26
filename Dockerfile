@@ -22,10 +22,6 @@ COPY --from=appbuilder /app/package.json ./package.json
 # Create empty log file so logger.js doesn't crash on first read
 RUN touch /app/system.log
 
-# TLS certificate — run get-cert.sh before building to populate ./certs/
-COPY certs/fullchain.pem /app/certs/fullchain.pem
-COPY certs/privkey.pem   /app/certs/privkey.pem
-
 ENV MONGO_URI=mongodb://pipeshub:pjfFy9uMqKyJYB@ac-aushobo-shard-00-00.0p3foic.mongodb.net:27017,ac-aushobo-shard-00-01.0p3foic.mongodb.net:27017,ac-aushobo-shard-00-02.0p3foic.mongodb.net:27017/?ssl=true&replicaSet=atlas-300gj9-shard-0&authSource=admin&appName=Cluster0 \
     PORT=16916 \
     HTTPS_PORT=16917 \
