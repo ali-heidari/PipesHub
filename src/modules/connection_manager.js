@@ -46,7 +46,7 @@ class Unit {
 getUnitByName = async (name) => {
     let unitModel = (await data.findUnit(name))[0];
     if (unitModel) {
-        return new Unit(unitModel._doc.name, unitModel._doc.socketId);
+        return new Unit(unitModel.name, unitModel.socketId);
     }
     return null;
 }
@@ -57,7 +57,7 @@ getUnitByName = async (name) => {
  */
 addUnit = (unit) => data.addUnit(unit.name, unit.socketId);
 
-getSocketId = async (name) => {
+getSocketId = async (name, client) => {
     // Get receiver socket id
     let unit = await getUnitByName(name);
     if (unit == undefined) {
@@ -97,7 +97,7 @@ module.exports = (port = 3000, sslOptions = null) => {
 
         client.on('gateway', async data => {
             // Get socked id of receiver
-            let socketId = await getSocketId(data.receiverId);
+            let socketId = await getSocketId(data.receiverId, client);
 
             // Send data to receiver
             io.to(socketId).emit('gateway', data);
@@ -105,7 +105,7 @@ module.exports = (port = 3000, sslOptions = null) => {
 
         client.on('responseGateway', async data => {
             // Get socked id of receiver
-            let socketId = await getSocketId(data.senderId);
+            let socketId = await getSocketId(data.senderId, client);
 
             // Send data to receiver
             io.to(socketId).emit('responseGateway', data);
