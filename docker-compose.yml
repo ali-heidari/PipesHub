@@ -1,27 +1,5 @@
-# PipesHub cluster — 3 nodes + MongoDB on macvlan
-#
-# All containers share the macvlan network; DB traffic stays internal.
-# TLS is terminated by node-1 using the Let's Encrypt cert baked into the image.
-#   - mongodb: 172.18.0.5  (port 27017, no auth)
-#   - node-1:  172.18.0.2  (HTTP :16916, HTTPS :16917, WSS :3000)
-#   - node-2:  172.18.0.3
-#   - node-3:  172.18.0.4
-#
-# Create the macvlan network once on the host before starting:
-#   docker network create -d macvlan \
-#     --subnet=172.18.0.0/24 --gateway=172.18.0.1 \
-#     -o parent=ens4 pipeshub-macvlan
-#
-# Get the certificate first, then build:
-#   ./get-cert.sh <CLOUDFLARE_API_TOKEN>
-#   docker build -f pipeshub.dockerfile .
-#
-# After deploying, point HUB_HOSTS at node-1's IP (172.18.0.2).
-
 x-node: &node
-  build:
-    context: .
-    dockerfile: pipeshub.dockerfile
+  image: ghcr.io/ali-heidari/pipeshub:latest
   cap_add:
     - NET_ADMIN
     - SYS_ADMIN
@@ -33,11 +11,12 @@ x-node: &node
     - ./certs/fullchain.pem:/app/certs/fullchain.pem:ro
     - ./certs/privkey.pem:/app/certs/privkey.pem:ro
   environment:
-    REDIS_URL: redis://172.18.0.5:6379/0
+    REDIS_URL: redis://192.168.102.5:6379/0
     PORT: 16916
     HTTPS_PORT: 16917
     SOCKET_PORT: 3000
     JWT_SECRET: SOME-LONG-RANDOM-STRING-HERE-USING-OPENSSL-RANDOM-SECRET
+    SSL_KEY_PASSPHRASE: 123456789
   depends_on:
     - redis
   restart: unless-stopped
@@ -50,8 +29,8 @@ services:
     volumes:
       - redis-data:/data
     networks:
-      pipeshub-macvlan:
-        ipv4_address: 172.18.0.5
+      net-bridge:
+        ipv4_address: 192.168.102.5
     restart: unless-stopped
 
   node-1:
@@ -61,30 +40,28 @@ services:
       - "443:16917"
       - "3000:3000"
     networks:
-      pipeshub-macvlan:
-        ipv4_address: 172.18.0.2
+      net-bridge:
+        ipv4_address: 192.168.102.2
 
   node-2:
     <<: *node
     networks:
-      pipeshub-macvlan:
-        ipv4_address: 172.18.0.3
+      net-bridge:
+        ipv4_address: 192.168.102.3
 
   node-3:
     <<: *node
     networks:
-      pipeshub-macvlan:
-        ipv4_address: 172.18.0.4
+      net-bridge:
+        ipv4_address: 192.168.102.4
 
 networks:
-  pipeshub-macvlan:
-    driver: macvlan
-    driver_opts:
-      parent: ens4
+  net-bridge:
+    driver: bridge
     ipam:
       config:
-        - subnet: 172.18.0.0/24
-          gateway: 172.18.0.1
+        - subnet: 192.168.102.0/24
+          gateway: 192.168.102.1
 
 volumes:
   redis-data:
