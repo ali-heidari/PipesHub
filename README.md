@@ -1,5 +1,7 @@
 # PipesHub
 
+![PipesHub banner](docs/pipeshub-banner.png)
+
 NodeJS service to make other services communicate through it.
 
 Run the server and derive class from client. **Clients available in JavaScript, Java and Python**
