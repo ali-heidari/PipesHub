@@ -23,18 +23,15 @@ PipesHub provides a central hub that other services (clients) connect to. Client
 The diagram below shows the high-level flow and components. Connect your clients to any node; the cluster will route and balance messages.
 
 ```
- +---------+        +------------------+        +------------------------+
- | ClientA | --REST-> | PipesHub (node) | --Socket-> | ClientB / Services   |
- +---------+        +------------------+        +------------------------+
+ +---------+        +-----------------+        +----------------------+
+ | ClientA | <---> |  Pipeshub Cluster | <---> | ClientB / Services   |
+ +---------+        +-----------------+        +----------------------+
                        ^     ^     ^
                        |     |     |
                   +----+-----+-----+----+
-                  |  Pipeshub Cluster   |
-                  |  pipeshub-1..3     |
+                  |        REDIS        |
+                  |  (token/socketId)   |
                   +---------------------+
-                           |
-                        MongoDB
-                   (shared registry/users)
 ```
 
 - Clients first POST to the REST auth endpoint to obtain a JWT.
