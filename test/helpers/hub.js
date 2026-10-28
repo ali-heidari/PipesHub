@@ -18,7 +18,12 @@ const RESERVED_PORTS = new Set([3000, 16916]);
 
 const children = new Set();
 process.on('exit', () => {
-    for (const child of children) child.kill('SIGKILL');
+    for (const child of children) {
+        try {
+            if (child.detachedGroup) process.kill(-child.pid, 'SIGKILL');
+            else child.kill('SIGKILL');
+        } catch { /* already gone */ }
+    }
 });
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -86,12 +91,23 @@ const track = proc => {
     return { output: () => output, exited };
 };
 
-const stopProcess = async (proc, exited) => {
+/**
+ * Stop a child; a detached one with its whole process group (npm and the
+ * node it started)
+ */
+const stopProcess = async (proc, exited, group = false) => {
     if (hasExited(proc)) return;
-    proc.kill('SIGTERM');
-    const timer = setTimeout(() => proc.kill('SIGKILL'), 3000);
+    const kill = signal => {
+        try {
+            if (group) process.kill(-proc.pid, signal);
+            else proc.kill(signal);
+        } catch { /* already gone */ }
+    };
+    kill('SIGTERM');
+    const timer = setTimeout(() => kill('SIGKILL'), 3000);
     await exited;
     clearTimeout(timer);
+    if (group) kill('SIGKILL');
 };
 
 /**
@@ -148,7 +164,14 @@ const startHub = async ({ redis, env = {}, wait = true, command, host = '127.0.0
         if (RESERVED_PORTS.has(Number(fullEnv[key]))) throw new Error(`refusing reserved ${key}=${fullEnv[key]}`);
     }
     const [file, ...args] = command ?? [process.execPath, MAIN];
-    const proc = spawn(file, args, { cwd: command ? ROOT : cwd, env: fullEnv, stdio: ['ignore', 'pipe', 'pipe'] });
+    // A command such as `npm start` runs in the repo, in its own process group
+    const proc = spawn(file, args, {
+        cwd: command ? ROOT : cwd,
+        env: fullEnv,
+        stdio: ['ignore', 'pipe', 'pipe'],
+        detached: Boolean(command),
+    });
+    proc.detachedGroup = Boolean(command);
     const { output, exited } = track(proc);
     const hub = {
         port,
@@ -160,7 +183,7 @@ const startHub = async ({ redis, env = {}, wait = true, command, host = '127.0.0
         output,
         exited,
         async stop() {
-            await stopProcess(proc, exited);
+            await stopProcess(proc, exited, proc.detachedGroup);
             fs.rmSync(cwd, { recursive: true, force: true });
         },
     };

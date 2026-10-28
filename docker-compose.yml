@@ -1,7 +1,7 @@
 x-node: &node
   build:
     context: .
-    dockerfile: pipeshub-dockerfile
+    dockerfile: Dockerfile
   cap_add:
     - NET_ADMIN
     - SYS_ADMIN

@@ -17,6 +17,7 @@
     "yaml": "^1.8.3"
   },
   "scripts": {
+    "start": "node src/main.js",
     "test": "node --test test/*.test.js"
   },
   "repository": {
