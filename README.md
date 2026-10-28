@@ -34,6 +34,10 @@ The diagram below shows the high-level flow and components. Connect your clients
                                +---------------------+
 ```
 
+- Nodes share one Redis: it holds the unit registry, and the Socket.io Redis
+  adapter (`@socket.io/redis-adapter`) carries messages between nodes, so a
+  unit on one node reaches a unit on any other. Every node needs the same
+  `JWT_SECRET` and `REDIS_URL`. A node does not listen until Redis answers.
 - Clients first POST to the REST auth endpoint to obtain a JWT.
 - Clients then connect to the Socket.io hub with the JWT in the Authorization header.
 - Once connected, clients use `request`, `ask`, or `persist` modes to perform communication.

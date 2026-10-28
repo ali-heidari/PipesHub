@@ -49,15 +49,26 @@ const sslOptions = (sslKey && sslCert)
     ? { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) }
     : null;
 
-cm(socketPort, sslOptions, bindAddr);
+const start = async () => {
+    // Redis holds the unit registry and carries messages between nodes, so
+    // nothing listens until it is reachable
+    await redis.init(configs.redis);
 
-http.createServer(app).listen(httpPort, bindAddr);
-log.l(`Server running on http://${bindAddr}:${httpPort}`);
+    await cm(socketPort, sslOptions, bindAddr, redis.getClient());
 
-if (sslOptions && httpsPort) {
-    https.createServer(sslOptions, app).listen(httpsPort, bindAddr);
-    log.l(`Server running on https://${bindAddr}:${httpsPort}`);
-}
+    http.createServer(app).listen(httpPort, bindAddr);
+    log.l(`Server running on http://${bindAddr}:${httpPort}`);
+
+    if (sslOptions && httpsPort) {
+        https.createServer(sslOptions, app).listen(httpsPort, bindAddr);
+        log.l(`Server running on https://${bindAddr}:${httpsPort}`);
+    }
+};
+
+start().catch(err => {
+    log.e(`PipesHub cannot start: ${err.message}`);
+    process.exit(1);
+});
 
 
 setTimeout(async () => await test.run(), 2000);
