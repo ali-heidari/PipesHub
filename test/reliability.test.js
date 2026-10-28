@@ -148,8 +148,8 @@ describe('presence', () => {
             const ack = await subscribe(world, [tab.name, 'nobody']);
             assert.deepEqual(ack, { ok: true, online: [tab.name] });
             tab.close();
-            const event = await world.waitFor('presence', p => p?.unit === tab.name);
-            assert.equal(event.status, 'offline');
+            // The tab's 'online' may still be on its way from the other node.
+            const event = await world.waitFor('presence', p => p?.unit === tab.name && p.status === 'offline');
             assert.equal(typeof event.at, 'string');
         } finally {
             world.close();

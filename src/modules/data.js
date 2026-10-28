@@ -36,13 +36,13 @@ return 1
  * Register a unit's socket, unless another socket took the name since the
  * caller looked. Resolves true if registered.
  */
-module.exports.claimUnit = async (name, socketId, tokenId, expectedSocketId) => {
+module.exports.claimUnit = async (name, socketId, tokenId, expectedSocketId, node) => {
     const unit = JSON.stringify({
         name,
         socketId,
         tokenId,
-        registerDate: new Date(),
-        disconnectDate: null
+        node,
+        registerDate: new Date()
     });
     return await redis.evalScript(CLAIM_UNIT, [`unit:${name}`], [unit, expectedSocketId || '']) === 1;
 };
@@ -57,24 +57,19 @@ module.exports.findUnit = async (name) => {
     }
 };
 
-// Mark the unit disconnected if socket ARGV[1] still holds it.
-const DISCONNECT_UNIT = `
+// Delete the unit if socket ARGV[1] still holds it. 1 if deleted.
+const REMOVE_UNIT = `
 local current = redis.call('GET', KEYS[1])
 if not current then return 0 end
 local ok, unit = pcall(cjson.decode, current)
 if not ok or type(unit) ~= 'table' or unit.socketId ~= ARGV[1] then return 0 end
-unit.disconnectDate = ARGV[2]
-redis.call('SET', KEYS[1], cjson.encode(unit))
+redis.call('DEL', KEYS[1])
 return 1
 `;
 
 /**
- * Mark a unit disconnected, unless a newer socket has taken its name
+ * Remove a disconnected unit, unless a newer socket has taken its name.
+ * Resolves true if removed.
  */
-module.exports.disconnectUnit = async (name, socketId) => {
-    try {
-        await redis.evalScript(DISCONNECT_UNIT, [`unit:${name}`], [socketId, new Date().toISOString()]);
-    } catch (err) {
-        console.error(err);
-    }
-};
+module.exports.removeUnit = async (name, socketId) =>
+    await redis.evalScript(REMOVE_UNIT, [`unit:${name}`], [socketId]) === 1;
