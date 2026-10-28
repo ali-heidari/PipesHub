@@ -86,6 +86,14 @@ const keys = async (pattern = '*') => {
 };
 
 /**
+ * Run a Lua script
+ */
+const evalScript = async (script, keys = [], args = []) => {
+  const client = getClient();
+  return await client.eval(script, { keys, arguments: args });
+};
+
+/**
  * Close Redis connection
  */
 const close = async () => {
@@ -103,5 +111,6 @@ module.exports = {
   del,
   exists,
   keys,
+  evalScript,
   close
 };

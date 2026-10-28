@@ -306,11 +306,13 @@ const connectUnit = async (hub, name, { token, timeoutMs = 5000, ...options } = 
     await new Promise((resolve, reject) => {
         const onGateway = data => { if (data === 200) done(); };
         const onError = err => done(err);
+        const onDisconnect = reason => done(new Error(`${name}: disconnected before gateway 200 (${reason})`));
         const timer = setTimeout(() => done(new Error(`${name}: no gateway 200 in ${timeoutMs} ms`)), timeoutMs);
         function done(err) {
             clearTimeout(timer);
             socket.off('gateway', onGateway);
             socket.off('connect_error', onError);
+            socket.off('disconnect', onDisconnect);
             if (err) {
                 socket.disconnect();
                 reject(err);
@@ -318,6 +320,7 @@ const connectUnit = async (hub, name, { token, timeoutMs = 5000, ...options } = 
         }
         socket.on('gateway', onGateway);
         socket.on('connect_error', onError);
+        socket.on('disconnect', onDisconnect);
     });
     return unit;
 };
