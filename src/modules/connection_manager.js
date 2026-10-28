@@ -51,12 +51,6 @@ getUnitByName = async (name) => {
     return null;
 }
 
-/**
- * Add new unit to database  
- * @param {Unit} unit Unit instance
- */
-addUnit = (unit) => data.addUnit(unit.name, unit.socketId);
-
 getSocketId = async (name, client) => {
     // Get receiver socket id
     let unit = await getUnitByName(name);
@@ -72,6 +66,11 @@ getSocketId = async (name, client) => {
  */
 const isEnvelope = data => data !== null && typeof data === 'object' && !Array.isArray(data);
 
+/**
+ * Whether a socket is still connected
+ */
+const isLive = async (io, socketId) => (await io.in(socketId).fetchSockets()).length > 0;
+
 
 module.exports = (port = 3000, sslOptions = null) => {
 
@@ -82,21 +81,56 @@ module.exports = (port = 3000, sslOptions = null) => {
     const io = new Server(server, { cors: { origin: '*' } });
 
     io.use(auth.verifySocketIO);
+
+    // Refuse a socket for a name a live socket holds, unless its token proves
+    // the same identity: the same token, or one got with the registration secret
+    io.use(async (socket, next) => {
+        try {
+            const name = socket.data.unit;
+            const held = (await data.findUnit(name))[0];
+            socket.data.replaces = held?.socketId ?? null;
+            socket.data.takeover = false;
+            if (held?.socketId && await isLive(io, held.socketId)) {
+                const sameToken = held.tokenId !== undefined && held.tokenId === socket.data.tokenId;
+                if (!sameToken && !socket.data.verified) {
+                    log.l(`Refused a second socket for unit ${name}: the name is in use.`);
+                    const err = new Error('Unit name in use');
+                    err.data = { code: 'UNIT_IN_USE' };
+                    return next(err);
+                }
+                socket.data.takeover = true;
+            }
+            next();
+        } catch (err) {
+            log.e(err);
+            next(new Error('Hub error'));
+        }
+    });
+
     io.on('connection', async client => {
         log.l('Connection established.');
 
         // The verified token names the unit, not the handshake query
         const unitName = client.data.unit;
 
-        let unit = await getUnitByName(unitName);
-        if (unit == null)
-            // Add connected unit
-            addUnit(new Unit(unitName, client.id));
-        else {
-            unit.socketId = client.id;
-
-            // Update socket id of unit in database
-            data.updateSocketId(unit.name, unit.socketId);
+        // Register the unit, unless another socket took the name meanwhile
+        let claimed = false;
+        try {
+            claimed = await data.claimUnit(unitName, client.id, client.data.tokenId, client.data.replaces);
+        } catch (err) {
+            log.e(err);
+        }
+        if (!claimed) {
+            log.l(`Refused a second socket for unit ${unitName}: the name is in use.`);
+            client.emit('gateway', 'Unit name in use.');
+            client.disconnect(true);
+            return;
+        }
+        if (client.data.takeover) {
+            const old = client.data.replaces;
+            log.l(`Unit ${unitName} taken over: socket ${old} replaced by ${client.id}.`);
+            io.to(old).emit('gateway', 'Unit name taken over by a new connection.');
+            io.in(old).disconnectSockets(true);
         }
 
         // Say client connection established
@@ -137,7 +171,7 @@ module.exports = (port = 3000, sslOptions = null) => {
 
         // On client disconnect
         client.on('disconnect', () => {
-            data.disconnectUnit(unitName);
+            data.disconnectUnit(unitName, client.id);
             log.l(`Unit ${unitName} disconnected.`);
         });
     });

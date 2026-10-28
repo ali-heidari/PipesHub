@@ -112,6 +112,13 @@ Environment variables:
 - The hub sets `senderId` on every `gateway` message to the sender's unit
   name, and `receiverId` on every `responseGateway` reply to the unit that
   answered, whatever the client sent.
+- One live socket per unit name. A second socket for a live name is refused
+  with the connect error `Unit name in use` (`data.code` `UNIT_IN_USE`),
+  unless its token proves the same identity: it is the same token (a client
+  reconnecting), or it was got with `AUTH_SECRET`. Then the new socket
+  replaces the old one: the old socket gets the `gateway` notice
+  `Unit name taken over by a new connection.` and is disconnected, and the
+  hub logs the takeover. A name is free again once its socket disconnects.
 
 ## Tests
 
