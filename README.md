@@ -85,6 +85,18 @@ docker compose down
 
 > Production: For full XDP NIC-bypass performance, deploy one container per physical host using `network_mode: host`. All nodes on the same machine share one NIC, which limits XDP redirect to a single host.
 
+## Tests
+
+```bash
+npm test
+```
+
+The tests start their own `redis-server` and hub processes on spare ports
+(never 3000 or 16916) and talk to them with real Socket.io clients. They need
+`redis-server` on the `PATH`, or `REDIS_SERVER` set to the binary. If a
+Lifegrid checkout is found (`LIFEGRID_DIR`, default `../../rust/life-grid`),
+they also run Lifegrid's web client (`web/js/pipes.js`) against the hub.
+
 ## Standards
 
 This project follows [`ai-agent-standards`](https://github.com/ali-heidari/ai-agent-standards). See [`.agent/agent-instructions.md`](.agent/agent-instructions.md) for project-specific AI agent guidance and instructions.
