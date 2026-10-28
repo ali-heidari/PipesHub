@@ -30,6 +30,11 @@ try {
     process.exit(1);
 }
 
+// Initialize Redis
+redis.init(configs.redis).catch(err => {
+    log.l(`Failed to initialize Redis: ${err.message}`);
+});
+
 route(app);
 
 const httpPort   = process.env.PORT        || configs["port"];
