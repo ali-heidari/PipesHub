@@ -106,6 +106,7 @@ Environment variables:
 | `AUTH_PROTECTED_UNITS` | `*` when `AUTH_SECRET` is set | Comma-separated unit names that need `AUTH_SECRET`; a trailing `*` matches a prefix, e.g. `world-region-*` |
 | `CORS_ORIGINS` | none: same origin only | Comma-separated browser origins allowed to call `POST /auth` and open a socket, e.g. `http://localhost:8080`; `*` allows any. A browser on another origin gets no CORS headers, and its socket handshake is refused (browsers send `Origin` on WebSocket too). Clients that send no `Origin`, such as servers, are not affected. |
 | `BIND_ADDR` | `0.0.0.0` (every network) | Address every port listens on, e.g. `127.0.0.1` for this machine only |
+| `MAX_HTTP_BUFFER_SIZE` | `1000000` (1 MB) | Largest message a socket may send, in bytes; a bigger one closes the connection |
 
 ### Tokens and unit names
 
@@ -125,6 +126,22 @@ Environment variables:
   replaces the old one: the old socket gets the `gateway` notice
   `Unit name taken over by a new connection.` and is disconnected, and the
   hub logs the takeover. A name is free again once its socket disconnects.
+
+### Events
+
+| Event | Direction | Payload |
+| --- | --- | --- |
+| `gateway` | hub → unit | `200` once the unit is registered; a message envelope; or a plain-text notice such as `No unit found with given name.` |
+| `gateway` | unit → hub | `{ senderId, receiverId, operation, input, awaiting }` |
+| `responseGateway` | both | the received envelope plus `res`, back to its sender |
+| `gatewayError` | hub → unit | `{ code: 'UNIT_NOT_FOUND', message, event, receiverId, operation, correlationId }` when the target of a `gateway` or `responseGateway` message is unknown or has disconnected. `correlationId` is the message's `input.correlationId` (or `null`). Sent together with the plain-text notice. |
+| `subscribePresence` | unit → hub | `'*'` or a list of unit names; the ack is `{ ok: true, online: [...] }` (the named units online now; no list for `'*'`) |
+| `unsubscribePresence` | unit → hub | the same, to stop |
+| `presence` | hub → unit | `{ unit, status: 'online' \| 'offline', at }`, only to units that subscribed. A takeover is not reported. |
+
+A unit may send as soon as it is connected: messages that arrive before the
+hub has registered it wait for that, in order. A unit's Redis entry is
+removed when it disconnects.
 
 ## Tests
 

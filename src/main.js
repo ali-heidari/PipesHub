@@ -30,11 +30,6 @@ try {
     process.exit(1);
 }
 
-// Initialize Redis
-redis.init(configs.redis).catch(err => {
-    log.l(`Failed to initialize Redis: ${err.message}`);
-});
-
 route(app);
 
 const httpPort   = process.env.PORT        || configs["port"];
@@ -44,6 +39,12 @@ const sslKey     = process.env.SSL_KEY;
 const sslCert    = process.env.SSL_CERT;
 // Where every port listens; 0.0.0.0 is every network
 const bindAddr   = process.env.BIND_ADDR   || '0.0.0.0';
+// Largest message a socket may send, in bytes; a bigger one closes it
+const maxHttpBufferSize = Number(process.env.MAX_HTTP_BUFFER_SIZE || 1e6);
+if (!Number.isInteger(maxHttpBufferSize) || maxHttpBufferSize <= 0) {
+    log.e(`PipesHub cannot start: MAX_HTTP_BUFFER_SIZE must be a number of bytes, not "${process.env.MAX_HTTP_BUFFER_SIZE}".`);
+    process.exit(1);
+}
 
 const sslOptions = (sslKey && sslCert)
     ? { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) }
@@ -54,7 +55,7 @@ const start = async () => {
     // nothing listens until it is reachable
     await redis.init(configs.redis);
 
-    await cm(socketPort, sslOptions, bindAddr, redis.getClient());
+    await cm({ port: socketPort, sslOptions, bindAddr, redisClient: redis.getClient(), maxHttpBufferSize });
 
     http.createServer(app).listen(httpPort, bindAddr);
     log.l(`Server running on http://${bindAddr}:${httpPort}`);
