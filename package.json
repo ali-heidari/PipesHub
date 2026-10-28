@@ -4,6 +4,7 @@
   "description": "NodeJS service to make other services communicate through it.",
   "main": "main.js",
   "dependencies": {
+    "@socket.io/redis-adapter": "^8.3.0",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.6",
     "express": "^4.21.0",

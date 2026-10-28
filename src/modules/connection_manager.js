@@ -4,6 +4,7 @@
 const http    = require('http');
 const https   = require('https');
 const { Server } = require('socket.io');
+const { createAdapter } = require('@socket.io/redis-adapter');
 const log = require("./logger");
 const auth = require("../services/authenticator");
 const origins = require("./origins");
@@ -73,7 +74,7 @@ const isEnvelope = data => data !== null && typeof data === 'object' && !Array.i
 const isLive = async (io, socketId) => (await io.in(socketId).fetchSockets()).length > 0;
 
 
-module.exports = (port = 3000, sslOptions = null, bindAddr = '0.0.0.0') => {
+module.exports = async (port = 3000, sslOptions = null, bindAddr = '0.0.0.0', redisClient = null) => {
 
     const server = sslOptions
         ? https.createServer(sslOptions)
@@ -83,6 +84,17 @@ module.exports = (port = 3000, sslOptions = null, bindAddr = '0.0.0.0') => {
         cors: { origin: origins.corsOrigin },
         allowRequest: origins.allowRequest,
     });
+
+    // Share rooms and broadcasts with the other nodes through Redis, so a
+    // message reaches a unit on any node and a socket on any node can be found
+    if (redisClient) {
+        const pubClient = redisClient.duplicate();
+        const subClient = redisClient.duplicate();
+        for (const c of [pubClient, subClient])
+            c.on('error', err => log.l(`Redis adapter error: ${err}`));
+        await Promise.all([pubClient.connect(), subClient.connect()]);
+        io.adapter(createAdapter(pubClient, subClient));
+    }
 
     io.use(auth.verifySocketIO);
 
