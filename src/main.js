@@ -5,6 +5,7 @@ const yaml    = require('yaml');
 const fs      = require('fs');
 const http    = require('http');
 const https   = require('https');
+const tls     = require('tls');
 const express = require('express');
 const log     = require("./modules/logger");
 const auth    = require("./services/authenticator");
@@ -23,12 +24,12 @@ const configs = yaml.parse(configContent);
 /**
  * Set configs
  */
-auth.init();
-
-// Initialize Redis
-redis.init(configs.redis).catch(err => {
-    log.l(`Failed to initialize Redis: ${err.message}`);
-});
+try {
+    auth.init();
+} catch (err) {
+    log.e(`PipesHub cannot start: ${err.message}`);
+    process.exit(1);
+}
 
 route(app);
 
@@ -37,20 +38,57 @@ const httpsPort  = process.env.HTTPS_PORT;
 const socketPort = process.env.SOCKET_PORT || 3000;
 const sslKey     = process.env.SSL_KEY;
 const sslCert    = process.env.SSL_CERT;
-
-const sslOptions = (sslKey && sslCert)
-    ? { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) }
-    : null;
-
-cm(socketPort, sslOptions);
-
-http.createServer(app).listen(httpPort, '0.0.0.0');
-log.l("Server running on http://0.0.0.0:" + httpPort);
-
-if (sslOptions && httpsPort) {
-    https.createServer(sslOptions, app).listen(httpsPort, '0.0.0.0');
-    log.l("Server running on https://0.0.0.0:" + httpsPort);
+// Where every port listens; 0.0.0.0 is every network
+const bindAddr   = process.env.BIND_ADDR   || '0.0.0.0';
+// Largest message a socket may send, in bytes; a bigger one closes it
+const maxHttpBufferSize = Number(process.env.MAX_HTTP_BUFFER_SIZE || 1e6);
+if (!Number.isInteger(maxHttpBufferSize) || maxHttpBufferSize <= 0) {
+    log.e(`PipesHub cannot start: MAX_HTTP_BUFFER_SIZE must be a number of bytes, not "${process.env.MAX_HTTP_BUFFER_SIZE}".`);
+    process.exit(1);
 }
+
+/**
+ * TLS options if SSL_KEY and SSL_CERT both name files that hold a key and a
+ * certificate; otherwise null, and the hub serves plain HTTP with a warning
+ */
+const loadSsl = () => {
+    if (!sslKey || !sslCert) {
+        const unset = [!sslKey && 'SSL_KEY', !sslCert && 'SSL_CERT'].filter(Boolean).join(' and ');
+        log.l(`WARNING: ${unset} not set; serving plain HTTP.`);
+        return null;
+    }
+    try {
+        const options = { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) };
+        tls.createSecureContext(options);
+        return options;
+    } catch (err) {
+        log.l(`WARNING: cannot use SSL_KEY ${sslKey} and SSL_CERT ${sslCert} (${err.message}); serving plain HTTP.`);
+        return null;
+    }
+};
+
+const sslOptions = loadSsl();
+
+const start = async () => {
+    // Redis holds the unit registry and carries messages between nodes, so
+    // nothing listens until it is reachable
+    await redis.init(configs.redis);
+
+    await cm({ port: socketPort, sslOptions, bindAddr, redisClient: redis.getClient(), maxHttpBufferSize });
+
+    http.createServer(app).listen(httpPort, bindAddr);
+    log.l(`Server running on http://${bindAddr}:${httpPort}`);
+
+    if (sslOptions && httpsPort) {
+        https.createServer(sslOptions, app).listen(httpsPort, bindAddr);
+        log.l(`Server running on https://${bindAddr}:${httpsPort}`);
+    }
+};
+
+start().catch(err => {
+    log.e(`PipesHub cannot start: ${err.message}`);
+    process.exit(1);
+});
 
 
 setTimeout(async () => await test.run(), 2000);

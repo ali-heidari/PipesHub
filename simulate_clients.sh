@@ -5,7 +5,6 @@
 NODE="${1:-192.168.101.11}"
 AUTH_PORT=16916
 SOCKET_PORT=3000
-AUTH_USER="${2:-guest}"   # must exist in MongoDB
 MODULES="$(cd "$(dirname "$0")" && pwd)/node_modules"
 
 die() { echo "[ERROR] $*" >&2; exit 1; }
@@ -14,16 +13,18 @@ auth() {
   local label="$1" node="$2" user="$3"
   echo "[*] Authenticating ${label} on ${node}..." >&2
   local tok status body
+  # The token names the unit; AUTH_SECRET is needed when the hub sets one.
   tok=$(curl -sf -X POST "http://${node}:${AUTH_PORT}/auth" \
     -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "name=${user}") || die "Auth HTTP error for ${label}"
+    --data-urlencode "name=${user}" \
+    ${AUTH_SECRET:+--data-urlencode "secret=${AUTH_SECRET}"}) || die "Auth HTTP error for ${label}"
   [ -n "$tok" ] || die "Empty token for ${label}"
   echo "$tok"
 }
 
 # ── Auth ─────────────────────────────────────────────────────────────────────
-TOKEN_A=$(auth clientA "$NODE" "$AUTH_USER") || exit 1
-TOKEN_B=$(auth clientB "$NODE" "$AUTH_USER") || exit 1
+TOKEN_A=$(auth clientA "$NODE" clientA) || exit 1
+TOKEN_B=$(auth clientB "$NODE" clientB) || exit 1
 
 # ── Client B: waits for a message, replies ────────────────────────────────────
 CLIENT_B=$(mktemp /tmp/ph_clientB_XXXXXX.js)
