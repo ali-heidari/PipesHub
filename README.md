@@ -100,6 +100,8 @@ Environment variables:
 | `TOKEN_TTL` | `86400` (24 h) | Token lifetime in seconds; `0` means tokens never expire |
 | `AUTH_SECRET` | — | Registration secret. When set, `POST /auth` needs it in the `secret` field for the names in `AUTH_PROTECTED_UNITS`. |
 | `AUTH_PROTECTED_UNITS` | `*` when `AUTH_SECRET` is set | Comma-separated unit names that need `AUTH_SECRET`; a trailing `*` matches a prefix, e.g. `world-region-*` |
+| `CORS_ORIGINS` | none: same origin only | Comma-separated browser origins allowed to call `POST /auth` and open a socket, e.g. `http://localhost:8080`; `*` allows any. A browser on another origin gets no CORS headers, and its socket handshake is refused (browsers send `Origin` on WebSocket too). Clients that send no `Origin`, such as servers, are not affected. |
+| `BIND_ADDR` | `0.0.0.0` (every network) | Address every port listens on, e.g. `127.0.0.1` for this machine only |
 
 ### Tokens and unit names
 

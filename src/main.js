@@ -42,19 +42,21 @@ const httpsPort  = process.env.HTTPS_PORT;
 const socketPort = process.env.SOCKET_PORT || 3000;
 const sslKey     = process.env.SSL_KEY;
 const sslCert    = process.env.SSL_CERT;
+// Where every port listens; 0.0.0.0 is every network
+const bindAddr   = process.env.BIND_ADDR   || '0.0.0.0';
 
 const sslOptions = (sslKey && sslCert)
     ? { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) }
     : null;
 
-cm(socketPort, sslOptions);
+cm(socketPort, sslOptions, bindAddr);
 
-http.createServer(app).listen(httpPort, '0.0.0.0');
-log.l("Server running on http://0.0.0.0:" + httpPort);
+http.createServer(app).listen(httpPort, bindAddr);
+log.l(`Server running on http://${bindAddr}:${httpPort}`);
 
 if (sslOptions && httpsPort) {
-    https.createServer(sslOptions, app).listen(httpsPort, '0.0.0.0');
-    log.l("Server running on https://0.0.0.0:" + httpsPort);
+    https.createServer(sslOptions, app).listen(httpsPort, bindAddr);
+    log.l(`Server running on https://${bindAddr}:${httpsPort}`);
 }
 
 
