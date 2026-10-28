@@ -6,6 +6,7 @@ const cors = require('cors');
 const engine = require("./md_engine");
 const log = require("./logger");
 const auth = require("../services/authenticator");
+const origins = require("./origins");
 const indexRouter = require("../routes/index");
 const usersRouter = require("../routes/users");
 const authRouter = require("../routes/auth/index");
@@ -15,8 +16,9 @@ module.exports = (app) => {
     app.set('views', path.join(__dirname, '/../views'));
     engine.setEngine(app);
 
+    // CORS headers only for the origins in CORS_ORIGINS
     app.use(cors({
-        origin: true,
+        origin: origins.corsOrigin,
         allowedHeaders: ['Content-Type', 'Authorization'],
         credentials: true,
     }));

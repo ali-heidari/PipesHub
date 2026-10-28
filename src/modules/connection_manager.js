@@ -6,6 +6,7 @@ const https   = require('https');
 const { Server } = require('socket.io');
 const log = require("./logger");
 const auth = require("../services/authenticator");
+const origins = require("./origins");
 const data = require("../modules/data");
 
 /**
@@ -72,13 +73,16 @@ const isEnvelope = data => data !== null && typeof data === 'object' && !Array.i
 const isLive = async (io, socketId) => (await io.in(socketId).fetchSockets()).length > 0;
 
 
-module.exports = (port = 3000, sslOptions = null) => {
+module.exports = (port = 3000, sslOptions = null, bindAddr = '0.0.0.0') => {
 
     const server = sslOptions
         ? https.createServer(sslOptions)
         : http.createServer();
 
-    const io = new Server(server, { cors: { origin: '*' } });
+    const io = new Server(server, {
+        cors: { origin: origins.corsOrigin },
+        allowRequest: origins.allowRequest,
+    });
 
     io.use(auth.verifySocketIO);
 
@@ -176,5 +180,6 @@ module.exports = (port = 3000, sslOptions = null) => {
         });
     });
 
-    server.listen(port, '0.0.0.0');
+    server.listen(port, bindAddr);
+    log.l(`Socket.io hub on ${sslOptions ? 'https' : 'http'}://${bindAddr}:${port}`);
 }
