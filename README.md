@@ -74,7 +74,7 @@ curl -X POST http://localhost:16916/auth \
      -d "name=myservice"
 
 # Then connect your Socket.io client to ws://localhost:3000
-# with the returned token in the Authorization header
+# with the returned token in the Authorization header (or as auth.token)
 ```
 
 ### Stop the cluster
@@ -84,6 +84,34 @@ docker compose down
 ```
 
 > Production: For full XDP NIC-bypass performance, deploy one container per physical host using `network_mode: host`. All nodes on the same machine share one NIC, which limits XDP redirect to a single host.
+
+## Configuration
+
+Environment variables:
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PORT` | `16916` (`src/configs/config.yaml`) | REST port (`POST /auth`) |
+| `SOCKET_PORT` | `3000` | Socket.io port |
+| `HTTPS_PORT` | — | HTTPS REST port, used with `SSL_KEY` and `SSL_CERT` |
+| `SSL_KEY`, `SSL_CERT` | — | TLS key and certificate files |
+| `REDIS_URL` | — | Redis URL; else `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` (localhost:6379/0) |
+| `JWT_SECRET` | none: required | Token secret, the same on every node. Without it the hub refuses to start, unless `NODE_ENV=development` (then it uses a random secret). The old public default `pipeshub-default-secret` is refused too. |
+| `TOKEN_TTL` | `86400` (24 h) | Token lifetime in seconds; `0` means tokens never expire |
+| `AUTH_SECRET` | — | Registration secret. When set, `POST /auth` needs it in the `secret` field for the names in `AUTH_PROTECTED_UNITS`. |
+| `AUTH_PROTECTED_UNITS` | `*` when `AUTH_SECRET` is set | Comma-separated unit names that need `AUTH_SECRET`; a trailing `*` matches a prefix, e.g. `world-region-*` |
+
+### Tokens and unit names
+
+- `POST /auth` takes the form fields `name` and, if the name is protected,
+  `secret`. It answers with the JWT as plain text, `403` when the secret is
+  missing or wrong, and `400` without a name.
+- The token names the unit (`sub`). The Socket.io handshake sends it as
+  `auth: { token }` or in the `Authorization` header. A `name` in the
+  handshake query is optional, but if present it must match the token.
+- The hub sets `senderId` on every `gateway` message to the sender's unit
+  name, and `receiverId` on every `responseGateway` reply to the unit that
+  answered, whatever the client sent.
 
 ## Tests
 

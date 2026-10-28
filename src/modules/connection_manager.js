@@ -67,6 +67,11 @@ getSocketId = async (name, client) => {
     return unit.socketId;
 };
 
+/**
+ * Only plain objects are envelopes; anything else is ignored.
+ */
+const isEnvelope = data => data !== null && typeof data === 'object' && !Array.isArray(data);
+
 
 module.exports = (port = 3000, sslOptions = null) => {
 
@@ -80,11 +85,13 @@ module.exports = (port = 3000, sslOptions = null) => {
     io.on('connection', async client => {
         log.l('Connection established.');
 
+        // The verified token names the unit, not the handshake query
+        const unitName = client.data.unit;
 
-        let unit = await getUnitByName(client.handshake.query.name);
+        let unit = await getUnitByName(unitName);
         if (unit == null)
             // Add connected unit
-            addUnit(new Unit(client.handshake.query.name, client.id));
+            addUnit(new Unit(unitName, client.id));
         else {
             unit.socketId = client.id;
 
@@ -96,25 +103,42 @@ module.exports = (port = 3000, sslOptions = null) => {
         client.emit('gateway', 200);
 
         client.on('gateway', async data => {
-            // Get socked id of receiver
-            let socketId = await getSocketId(data.receiverId, client);
+            if (!isEnvelope(data)) return log.l(`Ignored a gateway payload from ${unitName} that is not an object.`);
+            try {
+                // The sender is whoever the token says, not what the message claims
+                data.senderId = unitName;
 
-            // Send data to receiver
-            io.to(socketId).emit('gateway', data);
+                // Get socked id of receiver
+                let socketId = await getSocketId(data.receiverId, client);
+
+                // Send data to receiver
+                if (socketId) io.to(socketId).emit('gateway', data);
+            } catch (err) {
+                log.e(err);
+            }
         });
 
         client.on('responseGateway', async data => {
-            // Get socked id of receiver
-            let socketId = await getSocketId(data.senderId, client);
+            if (!isEnvelope(data)) return log.l(`Ignored a responseGateway payload from ${unitName} that is not an object.`);
+            try {
+                // senderId names the asker the reply goes to; receiverId is
+                // the unit that answered, so the hub sets it
+                data.receiverId = unitName;
 
-            // Send data to receiver
-            io.to(socketId).emit('responseGateway', data);
+                // Get socked id of receiver
+                let socketId = await getSocketId(data.senderId, client);
+
+                // Send data to receiver
+                if (socketId) io.to(socketId).emit('responseGateway', data);
+            } catch (err) {
+                log.e(err);
+            }
         });
 
         // On client disconnect
         client.on('disconnect', () => {
-            let res = data.disconnectUnit(client.handshake.query.name);
-            log.l(res);
+            data.disconnectUnit(unitName);
+            log.l(`Unit ${unitName} disconnected.`);
         });
     });
 
