@@ -125,7 +125,7 @@ const startRedis = async () => {
  * The child never inherits the caller's environment, so it cannot pick up a
  * live REDIS_URL or ports by accident.
  */
-const startHub = async ({ redis, env = {}, wait = true, command } = {}) => {
+const startHub = async ({ redis, env = {}, wait = true, command, host = '127.0.0.1' } = {}) => {
     if (!redis && !env.REDIS_URL) throw new Error('startHub needs a test Redis');
     const port = await freePort();
     const socketPort = await freePort();
@@ -155,8 +155,8 @@ const startHub = async ({ redis, env = {}, wait = true, command } = {}) => {
         socketPort,
         env: fullEnv,
         proc,
-        httpUrl: `http://127.0.0.1:${port}`,
-        socketUrl: `http://127.0.0.1:${socketPort}`,
+        httpUrl: `http://${host}:${port}`,
+        socketUrl: `http://${host}:${socketPort}`,
         output,
         exited,
         async stop() {
@@ -166,7 +166,7 @@ const startHub = async ({ redis, env = {}, wait = true, command } = {}) => {
     };
     if (wait) {
         try {
-            await Promise.all([waitForPort(port, { proc }), waitForPort(socketPort, { proc })]);
+            await Promise.all([waitForPort(port, { host, proc }), waitForPort(socketPort, { host, proc })]);
         } catch (err) {
             await hub.stop();
             err.message += `\n--- hub output ---\n${output()}`;
