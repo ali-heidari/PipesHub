@@ -23,7 +23,12 @@ const configs = yaml.parse(configContent);
 /**
  * Set configs
  */
-auth.init();
+try {
+    auth.init();
+} catch (err) {
+    log.e(`PipesHub cannot start: ${err.message}`);
+    process.exit(1);
+}
 
 // Initialize Redis
 redis.init(configs.redis).catch(err => {

@@ -20,6 +20,8 @@ class Unit {
      * Connect to get token
      */
     connect() {
+        // The token names the unit, so ask for one with this unit's name
+        const name = this.name;
         let post_options = {
             host: 'localhost',
             port: '16916',
@@ -42,7 +44,7 @@ class Unit {
                         reject(res.statusMessage);
                 });
             });
-            post_req.write('name=guest');
+            post_req.write(`name=${encodeURIComponent(name)}`);
             post_req.end();
         });
     }

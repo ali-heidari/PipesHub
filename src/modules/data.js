@@ -37,7 +37,7 @@ module.exports.findUnit = async (name) => {
         return unit ? [unit] : [];
     } catch (err) {
         console.error(err);
-        return null;
+        return [];
     }
 };
 

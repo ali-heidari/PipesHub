@@ -151,7 +151,8 @@ describe('token lifetime', () => {
             const token = await getToken(h, name);
             const claims = decodeJwt(token);
             assert.equal(claims.exp - claims.iat, 1);
-            await sleep(2100);
+            // 1 s lifetime plus the hub's 1 s clock tolerance
+            await sleep(3100);
             await expectRefused(connectUnit(h, name, { token }), /token/i);
         } finally {
             await h.stop();
