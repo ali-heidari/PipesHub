@@ -5,6 +5,7 @@ const yaml    = require('yaml');
 const fs      = require('fs');
 const http    = require('http');
 const https   = require('https');
+const tls     = require('tls');
 const express = require('express');
 const log     = require("./modules/logger");
 const auth    = require("./services/authenticator");
@@ -46,9 +47,27 @@ if (!Number.isInteger(maxHttpBufferSize) || maxHttpBufferSize <= 0) {
     process.exit(1);
 }
 
-const sslOptions = (sslKey && sslCert)
-    ? { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) }
-    : null;
+/**
+ * TLS options if SSL_KEY and SSL_CERT both name files that hold a key and a
+ * certificate; otherwise null, and the hub serves plain HTTP with a warning
+ */
+const loadSsl = () => {
+    if (!sslKey || !sslCert) {
+        const unset = [!sslKey && 'SSL_KEY', !sslCert && 'SSL_CERT'].filter(Boolean).join(' and ');
+        log.l(`WARNING: ${unset} not set; serving plain HTTP.`);
+        return null;
+    }
+    try {
+        const options = { key: fs.readFileSync(sslKey), cert: fs.readFileSync(sslCert) };
+        tls.createSecureContext(options);
+        return options;
+    } catch (err) {
+        log.l(`WARNING: cannot use SSL_KEY ${sslKey} and SSL_CERT ${sslCert} (${err.message}); serving plain HTTP.`);
+        return null;
+    }
+};
+
+const sslOptions = loadSsl();
 
 const start = async () => {
     // Redis holds the unit registry and carries messages between nodes, so

@@ -89,6 +89,13 @@ docker compose down
 
 > Production: For full XDP NIC-bypass performance, deploy one container per physical host using `network_mode: host`. All nodes on the same machine share one NIC, which limits XDP redirect to a single host.
 
+## Run without Docker
+
+```bash
+npm ci
+JWT_SECRET=$(openssl rand -hex 32) REDIS_URL=redis://127.0.0.1:6379/0 npm start
+```
+
 ## Configuration
 
 Environment variables:
@@ -98,7 +105,7 @@ Environment variables:
 | `PORT` | `16916` (`src/configs/config.yaml`) | REST port (`POST /auth`) |
 | `SOCKET_PORT` | `3000` | Socket.io port |
 | `HTTPS_PORT` | — | HTTPS REST port, used with `SSL_KEY` and `SSL_CERT` |
-| `SSL_KEY`, `SSL_CERT` | — | TLS key and certificate files |
+| `SSL_KEY`, `SSL_CERT` | — | TLS key and certificate files. Used only when both name files that hold a key and a certificate; otherwise the hub serves plain HTTP and logs a warning. |
 | `REDIS_URL` | — | Redis URL; else `REDIS_HOST`, `REDIS_PORT`, `REDIS_DB` (localhost:6379/0) |
 | `JWT_SECRET` | none: required | Token secret, the same on every node. Without it the hub refuses to start, unless `NODE_ENV=development` (then it uses a random secret). The old public default `pipeshub-default-secret` is refused too. |
 | `TOKEN_TTL` | `86400` (24 h) | Token lifetime in seconds; `0` means tokens never expire |

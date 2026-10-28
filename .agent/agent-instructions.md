@@ -45,8 +45,8 @@ Only steps backed by files in this repo:
 # Install dependencies
 npm install               # package.json present
 
-# Start server (requires MongoDB at MONGO_URI or localhost:27017)
-node src/main.js
+# Start server (requires Redis at REDIS_URL or localhost:6379, and JWT_SECRET)
+npm start                 # node src/main.js
 
 # Integration tests (spawn their own redis-server and hubs on spare ports)
 npm test                  # needs redis-server on PATH or REDIS_SERVER
