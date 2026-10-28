@@ -48,6 +48,9 @@ npm install               # package.json present
 # Start server (requires MongoDB at MONGO_URI or localhost:27017)
 node src/main.js
 
+# Integration tests (spawn their own redis-server and hubs on spare ports)
+npm test                  # needs redis-server on PATH or REDIS_SERVER
+
 # Docker cluster (3 nodes + MongoDB)
 docker compose up -d --build
 ```
